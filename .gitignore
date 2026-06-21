@@ -501,3 +501,20 @@ UserInputService.InputBegan:Connect(function(input, processed)
         end
     end
 end)
+local function patchPrompts(parent)
+    for _, obj in ipairs(parent:GetDescendants()) do
+        if obj:IsA("ProximityPrompt") and obj.ActionText == "Open Chest" then
+            obj.HoldDuration = 0
+        end
+    end
+end
+ 
+-- Patch all existing chests
+patchPrompts(workspace)
+ 
+-- Also patch any chests that load in later
+workspace.DescendantAdded:Connect(function(obj)
+    if obj:IsA("ProximityPrompt") and obj.ActionText == "Open Chest" then
+        obj.HoldDuration = 0
+    end
+end)
