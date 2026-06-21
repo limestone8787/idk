@@ -1,6 +1,5 @@
 -- ItemTeleporter LocalScript
 -- Place this inside: StarterPlayer > StarterPlayerScripts
--- Categories sourced from the official 99 Nights in the Forest Wiki (Fandom)
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -16,142 +15,119 @@ local OFFSET = Vector3.new(0, 0, -4)
 local GUI_KEY = Enum.KeyCode.F4
 -- ============================================================
 
--- ============================================================
--- ITEM CATEGORIES (from the 99 Nights in the Forest Wiki)
--- Add your item names here under the correct category.
--- Any item not listed defaults to "Other".
--- ============================================================
 local ITEM_CATEGORIES = {
-    -- 🪓 TOOLS
-    ["Old Sack"]         = "Tools",
-    ["Good Sack"]        = "Tools",
-    ["Infernal Sack"]    = "Tools",
-    ["Giant Sack"]       = "Tools",
-    ["Admin Sack"]       = "Tools",
-    ["Old Axe"]          = "Tools",
-    ["Good Axe"]         = "Tools",
-    ["Infernal Axe"]     = "Tools",
-    ["Diamond Axe"]      = "Tools",
-    ["Fishing Rod"]      = "Tools",
-    ["Good Fishing Rod"] = "Tools",
-    ["Taming Flute"]     = "Tools",
-    ["Bear Trap"]        = "Tools",
-    -- 🍗 FOOD
-    ["Berries"]          = "Food",
-    ["Cooked Berries"]   = "Food",
-    ["Mushroom"]         = "Food",
-    ["Cooked Mushroom"]  = "Food",
-    ["Raw Meat"]         = "Food",
-    ["Cooked Meat"]      = "Food",
-    ["Raw Fish"]         = "Food",
-    ["Cooked Fish"]      = "Food",
-    ["Bread"]            = "Food",
-    ["Cake"]             = "Food",
-    ["Pumpkin"]          = "Food",
-    ["BBQ Ribs"]         = "Food",
-    ["Candy"]            = "Food",
-    ["Apple"]            = "Food",
-    -- 🌱 SEED PACKS
-    ["Berry Seeds"]      = "Seed Packs",
-    ["Mushroom Seeds"]   = "Seed Packs",
-    ["Wheat Seeds"]      = "Seed Packs",
-    ["Pumpkin Seeds"]    = "Seed Packs",
-    -- 🔦 FLASHLIGHTS
-    ["Flashlight"]       = "Flashlights",
-    ["Good Flashlight"]  = "Flashlights",
-    ["Infernal Flashlight"] = "Flashlights",
-    -- ✨ TRIM KITS
-    ["Iron Trim Kit"]    = "Trim Kits",
-    ["Gold Trim Kit"]    = "Trim Kits",
-    ["Diamond Trim Kit"] = "Trim Kits",
-    -- ⚔️ WEAPONS
-    ["Stone Sword"]      = "Weapons",
-    ["Iron Sword"]       = "Weapons",
-    ["Gold Sword"]       = "Weapons",
-    ["Diamond Sword"]    = "Weapons",
-    ["Revolver"]         = "Weapons",
-    ["Shotgun"]          = "Weapons",
-    ["Ray Gun"]          = "Weapons",
-    ["Laser Cannon"]     = "Weapons",
-    ["Crossbow"]         = "Weapons",
-    ["Bullets"]          = "Weapons",
-    ["Shells"]           = "Weapons",
-    ["Bolts"]            = "Weapons",
-    -- 🛡️ ARMOR
-    ["Iron Helmet"]      = "Armor",
-    ["Iron Chestplate"]  = "Armor",
-    ["Iron Leggings"]    = "Armor",
-    ["Gold Helmet"]      = "Armor",
-    ["Gold Chestplate"]  = "Armor",
-    ["Gold Leggings"]    = "Armor",
-    ["Diamond Helmet"]   = "Armor",
-    ["Diamond Chestplate"] = "Armor",
-    ["Diamond Leggings"] = "Armor",
-    ["Warm Coat"]        = "Armor",
-    ["Warm Pants"]       = "Armor",
-    ["Warm Hat"]         = "Armor",
-    -- 🔥 FUEL
-    ["Log"]              = "Fuel",
-    ["Super Log"]        = "Fuel",
-    ["Coal"]             = "Fuel",
-    -- 🔩 SCRAP / MATERIALS
-    ["Bolt"]             = "Materials",
-    ["Super Bolt"]       = "Materials",
-    ["Iron Ingot"]       = "Materials",
-    ["Gold Ingot"]       = "Materials",
-    ["Diamond"]          = "Materials",
-    ["Stone"]            = "Materials",
-    ["Gem of the Forest"] = "Materials",
-    ["Cultist Gem"]      = "Materials",
-    ["Corrupted Ore"]    = "Materials",
-    ["Scrap"]            = "Scrap",
-    -- 🩹 HEALING
-    ["Bandage"]          = "Healing",
-    ["Medical Kit"]      = "Healing",
-    ["Health Potion"]    = "Healing",
-    -- 🧪 POTION INGREDIENTS
-    ["Red Mushroom"]     = "Potion Ingredients",
-    ["Blue Mushroom"]    = "Potion Ingredients",
-    ["Spider Eye"]       = "Potion Ingredients",
-    ["Owl Feather"]      = "Potion Ingredients",
-    -- 🦴 PELTS
-    ["Wolf Pelt"]        = "Pelts",
-    ["Bear Pelt"]        = "Pelts",
-    ["Deer Pelt"]        = "Pelts",
-    ["Bunny Foot"]       = "Pelts",
-    -- 📜 BLUEPRINTS
-    ["Blueprint"]        = "Blueprints",
-    -- 🔑 KEYS
-    ["Key"]              = "Keys",
-    ["Gold Key"]         = "Keys",
-    -- ⚙️ ANVIL PARTS
-    ["Anvil Part"]       = "Anvil Parts",
-    -- 🗑️ JUNK
-    ["Junk"]             = "Junk",
-    ["Broken Item"]      = "Junk",
+    ["Old Sack"]              = "Tools",
+    ["Good Sack"]             = "Tools",
+    ["Infernal Sack"]         = "Tools",
+    ["Giant Sack"]            = "Tools",
+    ["Admin Sack"]            = "Tools",
+    ["Old Axe"]               = "Tools",
+    ["Good Axe"]              = "Tools",
+    ["Infernal Axe"]          = "Tools",
+    ["Diamond Axe"]           = "Tools",
+    ["Fishing Rod"]           = "Tools",
+    ["Good Fishing Rod"]      = "Tools",
+    ["Taming Flute"]          = "Tools",
+    ["Bear Trap"]             = "Tools",
+    ["Berries"]               = "Food",
+    ["Cooked Berries"]        = "Food",
+    ["Mushroom"]              = "Food",
+    ["Cooked Mushroom"]       = "Food",
+    ["Raw Meat"]              = "Food",
+    ["Cooked Meat"]           = "Food",
+    ["Raw Fish"]              = "Food",
+    ["Cooked Fish"]           = "Food",
+    ["Bread"]                 = "Food",
+    ["Cake"]                  = "Food",
+    ["Pumpkin"]               = "Food",
+    ["BBQ Ribs"]              = "Food",
+    ["Candy"]                 = "Food",
+    ["Apple"]                 = "Food",
+    ["Berry Seeds"]           = "Seed Packs",
+    ["Mushroom Seeds"]        = "Seed Packs",
+    ["Wheat Seeds"]           = "Seed Packs",
+    ["Pumpkin Seeds"]         = "Seed Packs",
+    ["Flashlight"]            = "Flashlights",
+    ["Good Flashlight"]       = "Flashlights",
+    ["Infernal Flashlight"]   = "Flashlights",
+    ["Iron Trim Kit"]         = "Trim Kits",
+    ["Gold Trim Kit"]         = "Trim Kits",
+    ["Diamond Trim Kit"]      = "Trim Kits",
+    ["Stone Sword"]           = "Weapons",
+    ["Iron Sword"]            = "Weapons",
+    ["Gold Sword"]            = "Weapons",
+    ["Diamond Sword"]         = "Weapons",
+    ["Revolver"]              = "Weapons",
+    ["Shotgun"]               = "Weapons",
+    ["Ray Gun"]               = "Weapons",
+    ["Laser Cannon"]          = "Weapons",
+    ["Crossbow"]              = "Weapons",
+    ["Bullets"]               = "Weapons",
+    ["Shells"]                = "Weapons",
+    ["Iron Helmet"]           = "Armor",
+    ["Iron Chestplate"]       = "Armor",
+    ["Iron Leggings"]         = "Armor",
+    ["Gold Helmet"]           = "Armor",
+    ["Gold Chestplate"]       = "Armor",
+    ["Gold Leggings"]         = "Armor",
+    ["Diamond Helmet"]        = "Armor",
+    ["Diamond Chestplate"]    = "Armor",
+    ["Diamond Leggings"]      = "Armor",
+    ["Warm Coat"]             = "Armor",
+    ["Warm Pants"]            = "Armor",
+    ["Warm Hat"]              = "Armor",
+    ["Log"]                   = "Fuel",
+    ["Super Log"]             = "Fuel",
+    ["Coal"]                  = "Fuel",
+    ["Bolt"]                  = "Materials",
+    ["Super Bolt"]            = "Materials",
+    ["Iron Ingot"]            = "Materials",
+    ["Gold Ingot"]            = "Materials",
+    ["Diamond"]               = "Materials",
+    ["Stone"]                 = "Materials",
+    ["Gem of the Forest"]     = "Materials",
+    ["Cultist Gem"]           = "Materials",
+    ["Corrupted Ore"]         = "Materials",
+    ["Scrap"]                 = "Scrap",
+    ["Bandage"]               = "Healing",
+    ["Medical Kit"]           = "Healing",
+    ["Health Potion"]         = "Healing",
+    ["Red Mushroom"]          = "Potion Ingredients",
+    ["Blue Mushroom"]         = "Potion Ingredients",
+    ["Spider Eye"]            = "Potion Ingredients",
+    ["Owl Feather"]           = "Potion Ingredients",
+    ["Wolf Pelt"]             = "Pelts",
+    ["Bear Pelt"]             = "Pelts",
+    ["Deer Pelt"]             = "Pelts",
+    ["Bunny Foot"]            = "Pelts",
+    ["Blueprint"]             = "Blueprints",
+    ["Key"]                   = "Keys",
+    ["Gold Key"]              = "Keys",
+    ["Anvil Part"]            = "Anvil Parts",
+    ["Junk"]                  = "Junk",
+    ["Broken Item"]           = "Junk",
 }
 
--- Category display order and colors
 local CATEGORY_INFO = {
-    { name = "All",               color = Color3.fromRGB(100, 180, 255) },
-    { name = "Tools",             color = Color3.fromRGB(200, 160, 80)  },
-    { name = "Food",              color = Color3.fromRGB(220, 130, 80)  },
-    { name = "Weapons",           color = Color3.fromRGB(220, 80,  80)  },
-    { name = "Armor",             color = Color3.fromRGB(80,  180, 220) },
-    { name = "Healing",           color = Color3.fromRGB(100, 220, 120) },
-    { name = "Materials",         color = Color3.fromRGB(160, 120, 220) },
-    { name = "Fuel",              color = Color3.fromRGB(220, 100, 50)  },
-    { name = "Flashlights",       color = Color3.fromRGB(255, 230, 80)  },
-    { name = "Seed Packs",        color = Color3.fromRGB(120, 200, 100) },
-    { name = "Trim Kits",         color = Color3.fromRGB(200, 200, 80)  },
-    { name = "Pelts",             color = Color3.fromRGB(180, 130, 80)  },
-    { name = "Potion Ingredients",color = Color3.fromRGB(180, 80, 180)  },
-    { name = "Blueprints",        color = Color3.fromRGB(80, 160, 220)  },
-    { name = "Keys",              color = Color3.fromRGB(220, 200, 60)  },
-    { name = "Scrap",             color = Color3.fromRGB(150, 150, 150) },
-    { name = "Anvil Parts",       color = Color3.fromRGB(170, 170, 200) },
-    { name = "Junk",              color = Color3.fromRGB(120, 120, 120) },
-    { name = "Other",             color = Color3.fromRGB(160, 160, 180) },
+    { name = "All",                color = Color3.fromRGB(100, 180, 255) },
+    { name = "Tools",              color = Color3.fromRGB(200, 160, 80)  },
+    { name = "Food",               color = Color3.fromRGB(220, 130, 80)  },
+    { name = "Weapons",            color = Color3.fromRGB(220, 80,  80)  },
+    { name = "Armor",              color = Color3.fromRGB(80,  180, 220) },
+    { name = "Healing",            color = Color3.fromRGB(100, 220, 120) },
+    { name = "Materials",          color = Color3.fromRGB(160, 120, 220) },
+    { name = "Fuel",               color = Color3.fromRGB(220, 100, 50)  },
+    { name = "Flashlights",        color = Color3.fromRGB(255, 230, 80)  },
+    { name = "Seed Packs",         color = Color3.fromRGB(120, 200, 100) },
+    { name = "Trim Kits",          color = Color3.fromRGB(200, 200, 80)  },
+    { name = "Pelts",              color = Color3.fromRGB(180, 130, 80)  },
+    { name = "Potion Ingredients", color = Color3.fromRGB(180, 80, 180)  },
+    { name = "Blueprints",         color = Color3.fromRGB(80, 160, 220)  },
+    { name = "Keys",               color = Color3.fromRGB(220, 200, 60)  },
+    { name = "Scrap",              color = Color3.fromRGB(150, 150, 150) },
+    { name = "Anvil Parts",        color = Color3.fromRGB(170, 170, 200) },
+    { name = "Junk",               color = Color3.fromRGB(120, 120, 120) },
+    { name = "Other",              color = Color3.fromRGB(160, 160, 180) },
 }
 
 if not ITEMS_FOLDER then
@@ -160,7 +136,7 @@ if not ITEMS_FOLDER then
 end
 
 -- ────────────────────────────────────────────────
--- GUI SETUP
+-- GUI
 -- ────────────────────────────────────────────────
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "ItemTeleporterGui"
@@ -168,9 +144,7 @@ screenGui.ResetOnSpawn = false
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screenGui.Parent = player.PlayerGui
 
--- Main frame (wider to fit category bar)
 local frame = Instance.new("Frame")
-frame.Name = "MainFrame"
 frame.Size = UDim2.new(0, 340, 0, 460)
 frame.Position = UDim2.new(0.5, -170, 0.5, -230)
 frame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
@@ -184,7 +158,6 @@ local stroke = Instance.new("UIStroke", frame)
 stroke.Color = Color3.fromRGB(100, 180, 255)
 stroke.Thickness = 1.5
 
--- Title bar
 local titleBar = Instance.new("Frame", frame)
 titleBar.Size = UDim2.new(1, 0, 0, 40)
 titleBar.BackgroundColor3 = Color3.fromRGB(30, 30, 50)
@@ -212,7 +185,6 @@ closeBtn.Font = Enum.Font.GothamBold
 closeBtn.BorderSizePixel = 0
 Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(0, 6)
 
--- Search box
 local searchBox = Instance.new("TextBox", frame)
 searchBox.Size = UDim2.new(1, -20, 0, 30)
 searchBox.Position = UDim2.new(0, 10, 0, 48)
@@ -227,7 +199,6 @@ searchBox.BorderSizePixel = 0
 searchBox.ClearTextOnFocus = false
 Instance.new("UICorner", searchBox).CornerRadius = UDim.new(0, 6)
 
--- Category scroll bar (horizontal)
 local catScroll = Instance.new("ScrollingFrame", frame)
 catScroll.Size = UDim2.new(1, -20, 0, 30)
 catScroll.Position = UDim2.new(0, 10, 0, 84)
@@ -237,13 +208,11 @@ catScroll.ScrollBarThickness = 0
 catScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
 catScroll.AutomaticCanvasSize = Enum.AutomaticSize.X
 catScroll.ScrollingDirection = Enum.ScrollingDirection.X
-
 local catLayout = Instance.new("UIListLayout", catScroll)
 catLayout.FillDirection = Enum.FillDirection.Horizontal
 catLayout.SortOrder = Enum.SortOrder.LayoutOrder
 catLayout.Padding = UDim.new(0, 4)
 
--- Item scroll list
 local scrollFrame = Instance.new("ScrollingFrame", frame)
 scrollFrame.Size = UDim2.new(1, -20, 1, -170)
 scrollFrame.Position = UDim2.new(0, 10, 0, 122)
@@ -262,7 +231,6 @@ listPad.PaddingTop = UDim.new(0, 4)
 listPad.PaddingLeft = UDim.new(0, 4)
 listPad.PaddingRight = UDim.new(0, 4)
 
--- Status label
 local statusLabel = Instance.new("TextLabel", frame)
 statusLabel.Size = UDim2.new(1, -20, 0, 28)
 statusLabel.Position = UDim2.new(0, 10, 1, -38)
@@ -274,7 +242,6 @@ statusLabel.Font = Enum.Font.Gotham
 statusLabel.BorderSizePixel = 0
 Instance.new("UICorner", statusLabel).CornerRadius = UDim.new(0, 6)
 
--- Hint label
 local hintLabel = Instance.new("TextLabel", screenGui)
 hintLabel.Size = UDim2.new(0, 210, 0, 24)
 hintLabel.Position = UDim2.new(0, 10, 1, -34)
@@ -288,7 +255,7 @@ hintLabel.BorderSizePixel = 0
 Instance.new("UICorner", hintLabel).CornerRadius = UDim.new(0, 6)
 
 -- ────────────────────────────────────────────────
--- STATUS HELPER
+-- HELPERS
 -- ────────────────────────────────────────────────
 local function showStatus(msg, color)
     statusLabel.Text = msg
@@ -298,11 +265,8 @@ local function showStatus(msg, color)
     end)
 end
 
--- ────────────────────────────────────────────────
--- CATEGORY HELPER
--- ────────────────────────────────────────────────
-local function getCategory(itemName)
-    return ITEM_CATEGORIES[itemName] or "Other"
+local function getCategory(name)
+    return ITEM_CATEGORIES[name] or "Other"
 end
 
 local function getCategoryColor(catName)
@@ -313,14 +277,13 @@ local function getCategoryColor(catName)
 end
 
 -- ────────────────────────────────────────────────
--- TELEPORT LOGIC
+-- TELEPORT
 -- ────────────────────────────────────────────────
 local function getPlayerCFrame()
     character = player.Character
     if not character then return nil end
     local root = character:FindFirstChild("HumanoidRootPart")
-    if not root then return nil end
-    return root.CFrame
+    return root and root.CFrame or nil
 end
 
 local function moveItem(item, targetCFrame)
@@ -328,13 +291,17 @@ local function moveItem(item, targetCFrame)
         if item.PrimaryPart then
             item:SetPrimaryPartCFrame(targetCFrame)
         else
-            local parts = {}
+            local first
             for _, d in ipairs(item:GetDescendants()) do
-                if d:IsA("BasePart") then table.insert(parts, d) end
+                if d:IsA("BasePart") then
+                    if not first then first = d end
+                end
             end
-            if parts[1] then
-                local delta = targetCFrame.Position - parts[1].Position
-                for _, p in ipairs(parts) do p.CFrame = p.CFrame + delta end
+            if first then
+                local delta = targetCFrame.Position - first.Position
+                for _, d in ipairs(item:GetDescendants()) do
+                    if d:IsA("BasePart") then d.CFrame = d.CFrame + delta end
+                end
             end
         end
         return true
@@ -345,17 +312,6 @@ local function moveItem(item, targetCFrame)
     return false
 end
 
-local function teleportItem(item)
-    local cf = getPlayerCFrame()
-    if not cf then showStatus("❌ No character!", Color3.fromRGB(255,100,100)); return end
-    local ok = moveItem(item, cf * CFrame.new(OFFSET))
-    if ok then
-        showStatus("✅ Teleported: " .. item.Name)
-    else
-        showStatus("⚠️ " .. item.Name .. " is not a Part/Model", Color3.fromRGB(255,200,80))
-    end
-end
-
 local function teleportAllByName(name)
     local cf = getPlayerCFrame()
     if not cf then showStatus("❌ No character!", Color3.fromRGB(255,100,100)); return end
@@ -363,14 +319,11 @@ local function teleportAllByName(name)
     for _, item in ipairs(ITEMS_FOLDER:GetChildren()) do
         if item.Name == name then table.insert(matches, item) end
     end
-    if #matches == 0 then
-        showStatus("⚠️ No items named: " .. name, Color3.fromRGB(255,200,80)); return
-    end
-    local SIDE_OFFSET = 3
-    local startX = -((#matches - 1) * SIDE_OFFSET / 2)
+    if #matches == 0 then showStatus("⚠️ None found: " .. name, Color3.fromRGB(255,200,80)); return end
+    local GAP = 3
+    local startX = -((#matches - 1) * GAP / 2)
     for i, item in ipairs(matches) do
-        local xShift = startX + (i - 1) * SIDE_OFFSET
-        moveItem(item, cf * CFrame.new(OFFSET + Vector3.new(xShift, 0, 0)))
+        moveItem(item, cf * CFrame.new(OFFSET + Vector3.new(startX + (i-1)*GAP, 0, 0)))
     end
     showStatus("✅ Teleported " .. #matches .. "x " .. name)
 end
@@ -383,162 +336,159 @@ local categoryButtons = {}
 local allItemRows = {}
 
 -- ────────────────────────────────────────────────
--- BUILD CATEGORY TABS
--- ────────────────────────────────────────────────
-local function updateCategoryHighlight()
-    for catName, btn in pairs(categoryButtons) do
-        local isSelected = catName == selectedCategory
-        local col = getCategoryColor(catName)
-        btn.BackgroundColor3 = isSelected and col or Color3.fromRGB(30, 30, 50)
-        btn.TextColor3 = isSelected and Color3.fromRGB(20, 20, 30) or col
-    end
-end
-
--- Figure out which categories actually have items in the folder
-local function getPresentCategories()
-    local found = { ["All"] = true }
-    for _, item in ipairs(ITEMS_FOLDER:GetChildren()) do
-        found[getCategory(item.Name)] = true
-    end
-    return found
-end
-
-local function buildCategoryTabs()
-    -- Clear old tabs
-    for _, btn in pairs(categoryButtons) do btn:Destroy() end
-    categoryButtons = {}
-
-    local present = getPresentCategories()
-    local order = 0
-    for _, info in ipairs(CATEGORY_INFO) do
-        if present[info.name] then
-            local btn = Instance.new("TextButton", catScroll)
-            btn.Size = UDim2.new(0, 0, 1, 0)
-            btn.AutomaticSize = Enum.AutomaticSize.X
-            btn.BackgroundColor3 = Color3.fromRGB(30, 30, 50)
-            btn.Text = " " .. info.name .. " "
-            btn.TextColor3 = info.color
-            btn.TextSize = 11
-            btn.Font = Enum.Font.GothamBold
-            btn.BorderSizePixel = 0
-            btn.LayoutOrder = order
-            Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
-            local pad = Instance.new("UIPadding", btn)
-            pad.PaddingLeft = UDim.new(0, 6)
-            pad.PaddingRight = UDim.new(0, 6)
-
-            btn.Activated:Connect(function()
-                selectedCategory = info.name
-                updateCategoryHighlight()
-                -- rebuild list with current search and new category
-                local buildList = _G.ItemTeleporter_BuildList
-                if buildList then buildList(searchBox.Text) end
-            end)
-
-            categoryButtons[info.name] = btn
-            order += 1
-        end
-    end
-    updateCategoryHighlight()
-end
-
--- ────────────────────────────────────────────────
--- BUILD ITEM LIST
+-- BUILD LIST  (one row per UNIQUE name)
 -- ────────────────────────────────────────────────
 local function buildList(filter)
     for _, r in ipairs(allItemRows) do r:Destroy() end
     allItemRows = {}
     filter = (filter or ""):lower()
 
+    -- Count & collect unique names
     local nameCounts = {}
+    local nameOrder  = {}
     for _, item in ipairs(ITEMS_FOLDER:GetChildren()) do
-        nameCounts[item.Name] = (nameCounts[item.Name] or 0) + 1
+        if not nameCounts[item.Name] then
+            table.insert(nameOrder, item.Name)
+            nameCounts[item.Name] = 0
+        end
+        nameCounts[item.Name] += 1
     end
 
-    local shownAllButton = {}
+    -- Sort alphabetically
+    table.sort(nameOrder)
 
-    for _, item in ipairs(ITEMS_FOLDER:GetChildren()) do
-        local cat = getCategory(item.Name)
-        local matchesCategory = selectedCategory == "All" or cat == selectedCategory
-        local matchesSearch = filter == "" or item.Name:lower():find(filter, 1, true)
+    for _, name in ipairs(nameOrder) do
+        local cat = getCategory(name)
+        local matchesCat    = selectedCategory == "All" or cat == selectedCategory
+        local matchesSearch = filter == "" or name:lower():find(filter, 1, true)
+        if not (matchesCat and matchesSearch) then continue end
 
-        if matchesCategory and matchesSearch then
-            local row = Instance.new("Frame", scrollFrame)
-            row.Size = UDim2.new(1, 0, 0, 36)
-            row.BackgroundTransparency = 1
-            row.BorderSizePixel = 0
+        local count    = nameCounts[name]
+        local catColor = getCategoryColor(cat)
 
-            local rowLayout = Instance.new("UIListLayout", row)
-            rowLayout.FillDirection = Enum.FillDirection.Horizontal
-            rowLayout.SortOrder = Enum.SortOrder.LayoutOrder
-            rowLayout.Padding = UDim.new(0, 4)
+        local row = Instance.new("Frame", scrollFrame)
+        row.Size = UDim2.new(1, 0, 0, 36)
+        row.BackgroundTransparency = 1
+        row.BorderSizePixel = 0
 
-            local hasMultiple = nameCounts[item.Name] > 1
-            local catColor = getCategoryColor(cat)
+        local rl = Instance.new("UIListLayout", row)
+        rl.FillDirection = Enum.FillDirection.Horizontal
+        rl.SortOrder = Enum.SortOrder.LayoutOrder
+        rl.Padding = UDim.new(0, 4)
 
-            -- Category tag
-            local tag = Instance.new("TextLabel", row)
-            tag.Size = UDim2.new(0, 6, 1, 0)
-            tag.BackgroundColor3 = catColor
-            tag.Text = ""
-            tag.BorderSizePixel = 0
-            tag.LayoutOrder = 0
-            Instance.new("UICorner", tag).CornerRadius = UDim.new(0, 3)
+        -- Coloured category stripe
+        local stripe = Instance.new("Frame", row)
+        stripe.Size = UDim2.new(0, 6, 1, 0)
+        stripe.BackgroundColor3 = catColor
+        stripe.BorderSizePixel = 0
+        stripe.LayoutOrder = 0
+        Instance.new("UICorner", stripe).CornerRadius = UDim.new(0, 3)
 
-            -- Main teleport button
-            local mainWidth = hasMultiple and 0.72 or 1.0
-            local mainBtn = Instance.new("TextButton", row)
-            mainBtn.Size = UDim2.new(mainWidth, hasMultiple and -14 or -10, 1, 0)
-            mainBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 65)
-            mainBtn.BorderSizePixel = 0
-            mainBtn.Text = "  " .. item.Name
-            mainBtn.TextColor3 = Color3.fromRGB(210, 210, 255)
-            mainBtn.TextSize = 13
-            mainBtn.Font = Enum.Font.Gotham
-            mainBtn.TextXAlignment = Enum.TextXAlignment.Left
-            mainBtn.LayoutOrder = 1
-            Instance.new("UICorner", mainBtn).CornerRadius = UDim.new(0, 6)
-            mainBtn.MouseEnter:Connect(function() mainBtn.BackgroundColor3 = Color3.fromRGB(60, 80, 120) end)
-            mainBtn.MouseLeave:Connect(function() mainBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 65) end)
-            mainBtn.Activated:Connect(function() teleportItem(item) end)
-
-            -- TP All button (only first occurrence per name)
-            if hasMultiple and not shownAllButton[item.Name] then
-                shownAllButton[item.Name] = true
-                local allBtn = Instance.new("TextButton", row)
-                allBtn.Size = UDim2.new(0.28, -4, 1, 0)
-                allBtn.BackgroundColor3 = Color3.fromRGB(50, 90, 60)
-                allBtn.BorderSizePixel = 0
-                allBtn.Text = "All (" .. nameCounts[item.Name] .. ")"
-                allBtn.TextColor3 = Color3.fromRGB(140, 255, 160)
-                allBtn.TextSize = 11
-                allBtn.Font = Enum.Font.GothamBold
-                allBtn.LayoutOrder = 2
-                Instance.new("UICorner", allBtn).CornerRadius = UDim.new(0, 6)
-                allBtn.MouseEnter:Connect(function() allBtn.BackgroundColor3 = Color3.fromRGB(60, 130, 80) end)
-                allBtn.MouseLeave:Connect(function() allBtn.BackgroundColor3 = Color3.fromRGB(50, 90, 60) end)
-                allBtn.Activated:Connect(function() teleportAllByName(item.Name) end)
-            elseif hasMultiple then
-                mainBtn.Size = UDim2.new(1, -10, 1, 0)
+        -- Main button: shows name + count if >1
+        local label = count > 1 and (name .. "  ×" .. count) or name
+        local mainBtn = Instance.new("TextButton", row)
+        mainBtn.Size = UDim2.new(count > 1 and 0.68 or 1, -10, 1, 0)
+        mainBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 65)
+        mainBtn.BorderSizePixel = 0
+        mainBtn.Text = "  " .. label
+        mainBtn.TextColor3 = Color3.fromRGB(210, 210, 255)
+        mainBtn.TextSize = 13
+        mainBtn.Font = Enum.Font.Gotham
+        mainBtn.TextXAlignment = Enum.TextXAlignment.Left
+        mainBtn.LayoutOrder = 1
+        Instance.new("UICorner", mainBtn).CornerRadius = UDim.new(0, 6)
+        mainBtn.MouseEnter:Connect(function() mainBtn.BackgroundColor3 = Color3.fromRGB(60,80,120) end)
+        mainBtn.MouseLeave:Connect(function() mainBtn.BackgroundColor3 = Color3.fromRGB(40,40,65) end)
+        -- TP one (the first found)
+        mainBtn.Activated:Connect(function()
+            local cf = getPlayerCFrame()
+            if not cf then showStatus("❌ No character!", Color3.fromRGB(255,100,100)); return end
+            local found = ITEMS_FOLDER:FindFirstChild(name)
+            if found then
+                moveItem(found, cf * CFrame.new(OFFSET))
+                showStatus("✅ Teleported: " .. name)
             end
+        end)
 
-            table.insert(allItemRows, row)
+        -- TP All button (only when count > 1)
+        if count > 1 then
+            local allBtn = Instance.new("TextButton", row)
+            allBtn.Size = UDim2.new(0.32, -4, 1, 0)
+            allBtn.BackgroundColor3 = Color3.fromRGB(50, 90, 60)
+            allBtn.BorderSizePixel = 0
+            allBtn.Text = "TP All"
+            allBtn.TextColor3 = Color3.fromRGB(140, 255, 160)
+            allBtn.TextSize = 12
+            allBtn.Font = Enum.Font.GothamBold
+            allBtn.LayoutOrder = 2
+            Instance.new("UICorner", allBtn).CornerRadius = UDim.new(0, 6)
+            allBtn.MouseEnter:Connect(function() allBtn.BackgroundColor3 = Color3.fromRGB(60,130,80) end)
+            allBtn.MouseLeave:Connect(function() allBtn.BackgroundColor3 = Color3.fromRGB(50,90,60) end)
+            allBtn.Activated:Connect(function() teleportAllByName(name) end)
         end
+
+        table.insert(allItemRows, row)
     end
 end
 
--- Store buildList globally so category tabs can call it
-_G.ItemTeleporter_BuildList = buildList
+-- ────────────────────────────────────────────────
+-- BUILD CATEGORY TABS
+-- ────────────────────────────────────────────────
+local function updateCategoryHighlight()
+    for catName, btn in pairs(categoryButtons) do
+        local sel = catName == selectedCategory
+        local col = getCategoryColor(catName)
+        btn.BackgroundColor3 = sel and col or Color3.fromRGB(30,30,50)
+        btn.TextColor3 = sel and Color3.fromRGB(20,20,30) or col
+    end
+end
 
--- Initial build
+local function buildCategoryTabs()
+    for _, btn in pairs(categoryButtons) do btn:Destroy() end
+    categoryButtons = {}
+
+    -- Which categories actually exist in the folder?
+    local present = { ["All"] = true }
+    for _, item in ipairs(ITEMS_FOLDER:GetChildren()) do
+        present[getCategory(item.Name)] = true
+    end
+
+    local order = 0
+    for _, info in ipairs(CATEGORY_INFO) do
+        if not present[info.name] then continue end
+        local btn = Instance.new("TextButton", catScroll)
+        btn.Size = UDim2.new(0, 0, 1, 0)
+        btn.AutomaticSize = Enum.AutomaticSize.X
+        btn.BackgroundColor3 = Color3.fromRGB(30,30,50)
+        btn.Text = " " .. info.name .. " "
+        btn.TextColor3 = info.color
+        btn.TextSize = 11
+        btn.Font = Enum.Font.GothamBold
+        btn.BorderSizePixel = 0
+        btn.LayoutOrder = order
+        Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+        local p = Instance.new("UIPadding", btn)
+        p.PaddingLeft = UDim.new(0,6); p.PaddingRight = UDim.new(0,6)
+
+        btn.Activated:Connect(function()
+            selectedCategory = info.name
+            updateCategoryHighlight()
+            buildList(searchBox.Text)
+        end)
+
+        categoryButtons[info.name] = btn
+        order += 1
+    end
+    updateCategoryHighlight()
+end
+
+-- ────────────────────────────────────────────────
+-- INIT & TOGGLE
+-- ────────────────────────────────────────────────
 buildCategoryTabs()
 buildList()
 
 searchBox:GetPropertyChangedSignal("Text"):Connect(function() buildList(searchBox.Text) end)
-
--- ────────────────────────────────────────────────
--- TOGGLE
--- ────────────────────────────────────────────────
 closeBtn.Activated:Connect(function() frame.Visible = false end)
 
 UserInputService.InputBegan:Connect(function(input, processed)
