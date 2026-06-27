@@ -4,16 +4,14 @@ local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
 
 local player = Players.LocalPlayer 
-if not player then 
-	warn("LocalPlayer not found.") 
-	return 
-end
+if not player then return end
 
--- Use CoreGui for executor stability, fallback to PlayerGui
+-- Use CoreGui for executor stability
 local parentGui = (gethui and gethui()) or CoreGui or player:WaitForChild("PlayerGui")
 
 -- ====== AUTO FARM SETTINGS ====== 
-local ITEMS_PARENT = Workspace -- Changed from "Items" folder to Workspace
+-- Updated to look inside Workspace -> "items" folder
+local ITEMS_PARENT = Workspace:WaitForChild("items") 
 local TELEPORT_DROP_ZONE = Vector3.new(271, 2559, -28) 
 local INTERACT_DELAY = 0.3
 
@@ -26,14 +24,13 @@ local targetItems = {
 
 local isFarming = false
 
--- ====== REBUILT GUI (TEXT SIZE 10) ====== 
+-- ====== GUI CONSTRUCTION (TEXT SIZE 10) ====== 
 local screenGui = Instance.new("ScreenGui") 
 screenGui.Name = "AWESOME_HUB" 
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screenGui.ResetOnSpawn = false
 screenGui.Parent = parentGui
 
--- Main base box
 local mainGui = Instance.new("Frame") 
 mainGui.Name = "MainGui" 
 mainGui.BackgroundColor3 = Color3.fromRGB(50, 50, 50) 
@@ -42,21 +39,15 @@ mainGui.Position = UDim2.new(0.307, -22, 0.25977, 13)
 mainGui.BorderSizePixel = 0
 mainGui.Parent = screenGui
 
-local mainCorner = Instance.new("UICorner")
-mainCorner.Parent = mainGui
-
-local strokeMain = Instance.new("UIStroke") 
+Instance.new("UICorner", mainGui)
+local strokeMain = Instance.new("UIStroke", mainGui)
 strokeMain.Thickness = 5 
 strokeMain.Color = Color3.fromRGB(32, 32, 32)
-strokeMain.Parent = mainGui
 
--- Stable drag setup
-local dragDetector = Instance.new("UIDragDetector")
-dragDetector.DragUDim2 = UDim2.new(0, -15, 0, -3)
-dragDetector.Parent = mainGui
+local drag = Instance.new("UIDragDetector", mainGui)
+drag.DragUDim2 = UDim2.new(0, -15, 0, -3)
 
--- Header text label
-local titleLabel = Instance.new("TextLabel") 
+local titleLabel = Instance.new("TextLabel", mainGui) 
 titleLabel.BackgroundTransparency = 1 
 titleLabel.Text = "Awesome Hub" 
 titleLabel.TextSize = 10 
@@ -64,28 +55,8 @@ titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 titleLabel.Font = Enum.Font.SourceSansBold 
 titleLabel.Size = UDim2.new(0, 200, 0, 50) 
 titleLabel.Position = UDim2.new(0.34375, 0, 0, 0)
-titleLabel.Parent = mainGui
 
--- X Close button
-local closeButton = Instance.new("TextButton")
-closeButton.Name = "CloseButton"
-closeButton.Text = "X"
-closeButton.TextSize = 10
-closeButton.TextColor3 = Color3.fromRGB(255, 100, 100)
-closeButton.Font = Enum.Font.SourceSansBold
-closeButton.Size = UDim2.new(0, 35, 0, 35)
-closeButton.Position = UDim2.new(1, -45, 0, 10)
-closeButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-closeButton.BorderSizePixel = 0
-closeButton.Parent = mainGui
-
-local closeCorner = Instance.new("UICorner")
-closeCorner.CornerRadius = UDim.new(0, 6)
-closeCorner.Parent = closeButton
-
--- Left Toggle sub-menu button
-local drillToggleBtn = Instance.new("TextButton") 
-drillToggleBtn.Name = "DrillToggleBtn"
+local drillToggleBtn = Instance.new("TextButton", mainGui) 
 drillToggleBtn.Text = "Drill For Brainrots" 
 drillToggleBtn.TextSize = 10 
 drillToggleBtn.Size = UDim2.new(0, 142, 0, 42) 
@@ -93,38 +64,24 @@ drillToggleBtn.Position = UDim2.new(0.02969, 0, 0.04199, 0)
 drillToggleBtn.BackgroundColor3 = Color3.fromRGB(53, 53, 53) 
 drillToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255) 
 drillToggleBtn.BorderSizePixel = 0 
-drillToggleBtn.Parent = mainGui
 
-local btnCorner1 = Instance.new("UICorner")
-btnCorner1.CornerRadius = UDim.new(0, 6)
-btnCorner1.Parent = drillToggleBtn
-
-local strokeBtn1 = Instance.new("UIStroke") 
+Instance.new("UICorner", drillToggleBtn).CornerRadius = UDim.new(0, 6)
+local strokeBtn1 = Instance.new("UIStroke", drillToggleBtn)
 strokeBtn1.Thickness = 3 
 strokeBtn1.Color = Color3.fromRGB(31, 31, 31)
-strokeBtn1.Parent = drillToggleBtn
 
--- Submenu panel
-local drillSubPanel = Instance.new("Frame") 
-drillSubPanel.Name = "DrillSubPanel" 
+local drillSubPanel = Instance.new("Frame", mainGui) 
 drillSubPanel.BackgroundColor3 = Color3.fromRGB(45, 45, 45) 
 drillSubPanel.Size = UDim2.new(0, 430, 0, 302) 
 drillSubPanel.Position = UDim2.new(0.3, 0, 0.15, 0) 
-drillSubPanel.BorderSizePixel = 0 
 drillSubPanel.Visible = false 
-drillSubPanel.Parent = mainGui
 
-local subCorner = Instance.new("UICorner")
-subCorner.Parent = drillSubPanel
-
-local strokeSub = Instance.new("UIStroke") 
+Instance.new("UICorner", drillSubPanel)
+local strokeSub = Instance.new("UIStroke", drillSubPanel)
 strokeSub.Thickness = 5 
 strokeSub.Color = Color3.fromRGB(32, 32, 32)
-strokeSub.Parent = drillSubPanel
 
--- Auto Farm button
-local autoFarmBtn = Instance.new("TextButton") 
-autoFarmBtn.Name = "AutoFarmBtn"
+local autoFarmBtn = Instance.new("TextButton", drillSubPanel) 
 autoFarmBtn.Text = "Auto Farm" 
 autoFarmBtn.TextSize = 10 
 autoFarmBtn.Size = UDim2.new(0, 142, 0, 42) 
@@ -132,114 +89,70 @@ autoFarmBtn.Position = UDim2.new(0.334, 0, 0.058, 0)
 autoFarmBtn.BackgroundColor3 = Color3.fromRGB(53, 53, 53) 
 autoFarmBtn.TextColor3 = Color3.fromRGB(255, 255, 255) 
 autoFarmBtn.BorderSizePixel = 0 
-autoFarmBtn.Parent = drillSubPanel
 
-local btnCorner2 = Instance.new("UICorner")
-btnCorner2.CornerRadius = UDim.new(0, 6)
-btnCorner2.Parent = autoFarmBtn
-
-local strokeAuto = Instance.new("UIStroke") 
+Instance.new("UICorner", autoFarmBtn).CornerRadius = UDim.new(0, 6)
+local strokeAuto = Instance.new("UIStroke", autoFarmBtn)
 strokeAuto.Thickness = 3 
 strokeAuto.Color = Color3.fromRGB(31, 31, 31)
-strokeAuto.Parent = autoFarmBtn
 
--- ====== REBUILT LOGIC ENGINES ====== 
+-- ====== LOGIC ====== 
 local function teleportTo(position) 
 	local char = player.Character if not char then return end 
 	local hrp = char:FindFirstChild("HumanoidRootPart") if not hrp then return end 
 	hrp.CFrame = CFrame.new(position + Vector3.new(0, 3, 0)) 
-	task.wait(0.12) 
-end
-
-local function getItemPosition(item) 
-	if not item then return nil end 
-	if item:IsA("BasePart") then return item.Position end 
-	if item:IsA("Model") then 
-		if item.PrimaryPart then return item.PrimaryPart.Position end 
-		local part = item:FindFirstChildWhichIsA("BasePart", true) 
-		if part then return part.Position end 
-	end 
-	local deepPart = item:FindFirstChildWhichIsA("BasePart", true) 
-	return deepPart and deepPart.Position or nil 
 end
 
 local function firePrompt(prompt) 
 	if not prompt then return end 
-    -- Use executor function if available
-    if fireproximityprompt then
-        fireproximityprompt(prompt)
-    else
-        pcall(function() 
-            prompt:InputHoldBegin() 
-            task.wait((prompt.HoldDuration or 0) + INTERACT_DELAY) 
-            prompt:InputHoldEnd() 
-        end) 
-    end
+	if fireproximityprompt then 
+		fireproximityprompt(prompt) 
+	else 
+		pcall(function() 
+			prompt:InputHoldBegin() 
+			task.wait((prompt.HoldDuration or 0) + INTERACT_DELAY) 
+			prompt:InputHoldEnd() 
+		end) 
+	end 
 end
 
 local function startFarmingLoop() 
-	print("[AutoFarm] Activated loop.") 
 	while isFarming do 
 		local foundItems = false 
-		local char = player.Character 
-		
-		if char and char:FindFirstChild("HumanoidRootPart") then 
-            -- Getting children since items are in Workspace
-			local list = ITEMS_PARENT:GetChildren() 
-			
-			for _, object in ipairs(list) do 
+		if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then 
+			for _, object in ipairs(ITEMS_PARENT:GetChildren()) do 
 				if not isFarming then break end 
-				
 				if targetItems[object.Name] then 
-					local pos = getItemPosition(object) 
 					local prompt = object:FindFirstChildWhichIsA("ProximityPrompt", true) 
+					local part = object:IsA("BasePart") and object or object:FindFirstChildWhichIsA("BasePart", true)
 					
-					if pos and prompt then 
+					if part and prompt then 
 						foundItems = true 
-						teleportTo(pos) 
-						task.wait(0.15) 
+						teleportTo(part.Position) 
+						task.wait(0.1) 
 						firePrompt(prompt) 
-						task.wait(0.15) 
-						
-						if isFarming then 
-							teleportTo(TELEPORT_DROP_ZONE) 
-							task.wait(0.2) 
-						end 
+						task.wait(0.1) 
+						teleportTo(TELEPORT_DROP_ZONE) 
+						task.wait(0.2) 
 					end 
 				end 
 			end 
 		end 
-		task.wait(foundItems and 0.5 or 2.0) 
+		task.wait(foundItems and 0.3 or 1.5) 
 	end 
-	print("[AutoFarm] Deactivated loop.") 
 end
 
--- ====== STABLE SIGNALS HOOK UP ====== 
-closeButton.MouseButton1Click:Connect(function() 
-	mainGui.Visible = false 
-end)
-
-UserInputService.InputBegan:Connect(function(input, processed) 
-	if processed then return end 
-	if input.KeyCode == Enum.KeyCode.K then 
-		mainGui.Visible = not mainGui.Visible 
-	end 
-end)
-
+-- ====== INTERACTION ====== 
 drillToggleBtn.MouseButton1Click:Connect(function() 
 	drillSubPanel.Visible = not drillSubPanel.Visible 
 end)
 
 autoFarmBtn.MouseButton1Click:Connect(function() 
 	isFarming = not isFarming 
-	if isFarming then 
-		autoFarmBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 0) 
-		autoFarmBtn.Text = "Auto Farm: ON" 
-		task.spawn(startFarmingLoop) 
-	else 
-		autoFarmBtn.BackgroundColor3 = Color3.fromRGB(53, 53, 53) 
-		autoFarmBtn.Text = "Auto Farm" 
-	end 
+	autoFarmBtn.BackgroundColor3 = isFarming and Color3.fromRGB(0, 200, 0) or Color3.fromRGB(53, 53, 53)
+	autoFarmBtn.Text = isFarming and "Auto Farm: ON" or "Auto Farm"
+	if isFarming then task.spawn(startFarmingLoop) end
 end)
 
-print("[AWESOME HUB] Loaded - Items parented to Workspace. Press 'K' to hide/show.")
+UserInputService.InputBegan:Connect(function(input, processed) 
+	if not processed and input.KeyCode == Enum.KeyCode.K then mainGui.Visible = not mainGui.Visible end 
+end)
