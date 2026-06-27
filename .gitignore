@@ -4,13 +4,13 @@ local UserInputService = game:GetService("UserInputService")
 
 local player = Players.LocalPlayer 
 if not player then 
-	warn("LocalPlayer not found. Run in an environment with LocalPlayer access.") 
+	warn("LocalPlayer not found.") 
 	return 
 end
 
 local playerGui = player:WaitForChild("PlayerGui")
 
--- ====== AUTO FARM PARAMETERS ====== 
+-- ====== AUTO FARM SETTINGS ====== 
 local ITEMS_PARENT = Workspace:WaitForChild("Items")
 local TELEPORT_DROP_ZONE = Vector3.new(271, 2559, -28) 
 local INTERACT_DELAY = 0.3
@@ -24,12 +24,12 @@ local targetItems = {
 
 local isFarming = false
 
--- ====== STABLE USER INTERFACE REBUILD ====== 
+-- ====== REBUILT GUI (TEXT SIZE 10) ====== 
 local screenGui = Instance.new("ScreenGui") 
 screenGui.Name = "AWESOME_HUB" 
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
--- Main Container Window
+-- Main base box
 local mainGui = Instance.new("Frame") 
 mainGui.Name = "MainGui" 
 mainGui.BackgroundColor3 = Color3.fromRGB(50, 50, 50) 
@@ -46,22 +46,27 @@ strokeMain.Thickness = 5
 strokeMain.Color = Color3.fromRGB(32, 32, 32)
 strokeMain.Parent = mainGui
 
--- Title Text Node (Text size made smaller: 25 -> 18)
+-- Stable drag setup
+local dragDetector = Instance.new("UIDragDetector")
+dragDetector.DragUDim2 = UDim2.new(0, -15, 0, -3)
+dragDetector.Parent = mainGui
+
+-- Header text label (Text size set to 10)
 local titleLabel = Instance.new("TextLabel") 
 titleLabel.BackgroundTransparency = 1 
 titleLabel.Text = "Awesome Hub" 
-titleLabel.TextSize = 18 
+titleLabel.TextSize = 10 
 titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255) 
 titleLabel.Font = Enum.Font.SourceSansBold 
 titleLabel.Size = UDim2.new(0, 200, 0, 50) 
 titleLabel.Position = UDim2.new(0.34375, 0, 0, 0)
 titleLabel.Parent = mainGui
 
--- X Close Button (Text size made smaller: 22 -> 14)
+-- X Close button (Text size set to 10)
 local closeButton = Instance.new("TextButton")
 closeButton.Name = "CloseButton"
 closeButton.Text = "X"
-closeButton.TextSize = 14
+closeButton.TextSize = 10
 closeButton.TextColor3 = Color3.fromRGB(255, 100, 100)
 closeButton.Font = Enum.Font.SourceSansBold
 closeButton.Size = UDim2.new(0, 35, 0, 35)
@@ -74,11 +79,11 @@ local closeCorner = Instance.new("UICorner")
 closeCorner.CornerRadius = UDim.new(0, 6)
 closeCorner.Parent = closeButton
 
--- Nav Menu Opener Button (Text size made smaller: 20 -> 14)
+-- Left Toggle sub-menu button (Text size set to 10)
 local drillToggleBtn = Instance.new("TextButton") 
 drillToggleBtn.Name = "DrillToggleBtn"
 drillToggleBtn.Text = "Drill For Brainrots" 
-drillToggleBtn.TextSize = 12 
+drillToggleBtn.TextSize = 10 
 drillToggleBtn.Size = UDim2.new(0, 142, 0, 42) 
 drillToggleBtn.Position = UDim2.new(0.02969, 0, 0.04199, 0) 
 drillToggleBtn.BackgroundColor3 = Color3.fromRGB(53, 53, 53) 
@@ -95,7 +100,7 @@ strokeBtn1.Thickness = 3
 strokeBtn1.Color = Color3.fromRGB(31, 31, 31)
 strokeBtn1.Parent = drillToggleBtn
 
--- Submenu Panel Container
+-- Submenu panel
 local drillSubPanel = Instance.new("Frame") 
 drillSubPanel.Name = "DrillSubPanel" 
 drillSubPanel.BackgroundColor3 = Color3.fromRGB(45, 45, 45) 
@@ -113,11 +118,11 @@ strokeSub.Thickness = 5
 strokeSub.Color = Color3.fromRGB(32, 32, 32)
 strokeSub.Parent = drillSubPanel
 
--- Auto Farm Activation Button (Text size made smaller: 20 -> 14)
+-- Auto Farm button (Text size set to 10)
 local autoFarmBtn = Instance.new("TextButton") 
 autoFarmBtn.Name = "AutoFarmBtn"
 autoFarmBtn.Text = "Auto Farm" 
-autoFarmBtn.TextSize = 14 
+autoFarmBtn.TextSize = 10 
 autoFarmBtn.Size = UDim2.new(0, 142, 0, 42) 
 autoFarmBtn.Position = UDim2.new(0.334, 0, 0.058, 0) 
 autoFarmBtn.BackgroundColor3 = Color3.fromRGB(53, 53, 53) 
@@ -134,133 +139,92 @@ strokeAuto.Thickness = 3
 strokeAuto.Color = Color3.fromRGB(31, 31, 31)
 strokeAuto.Parent = autoFarmBtn
 
--- Mount UI Elements directly to screen viewports
+-- Mount to viewport screen canvas
 screenGui.Parent = playerGui
 
--- ====== SYSTEM ENGINE LOGIC ====== 
-local function dbg(...) 
-	local t = {...} 
-	for i = 1, #t do t[i] = tostring(t[i]) end 
-	print("[AutoFarm]", table.concat(t, " ")) 
-end
-
+-- ====== REBUILT LOGIC ENGINES ====== 
 local function teleportTo(position) 
 	local char = player.Character if not char then return end 
 	local hrp = char:FindFirstChild("HumanoidRootPart") if not hrp then return end 
-	
-	-- Position offset safety buffer
 	hrp.CFrame = CFrame.new(position + Vector3.new(0, 3, 0)) 
 	task.wait(0.12) 
 end
 
 local function getItemPosition(item) 
 	if not item then return nil end 
-	if item:IsA("BasePart") then 
-		return item.Position 
-	elseif item:IsA("Model") then 
+	if item:IsA("BasePart") then return item.Position end 
+	if item:IsA("Model") then 
 		if item.PrimaryPart then return item.PrimaryPart.Position end 
 		local part = item:FindFirstChildWhichIsA("BasePart", true) 
 		if part then return part.Position end 
-	else 
-		local descendantPart = item:FindFirstChildWhichIsA("BasePart", true) 
-		if descendantPart then return descendantPart.Position end 
 	end 
-	return nil 
+	local deepPart = item:FindFirstChildWhichIsA("BasePart", true) 
+	return deepPart and deepPart.Position or nil 
 end
 
 local function firePrompt(prompt) 
-	if not prompt then return false end 
-	if fireproximityprompt then 
-		local ok = pcall(function() fireproximityprompt(prompt) end) 
-		if ok then return true end 
-	end 
-	local ok = pcall(function() 
+	if not prompt then return end 
+	pcall(function() 
 		prompt:InputHoldBegin() 
 		task.wait((prompt.HoldDuration or 0) + INTERACT_DELAY) 
 		prompt:InputHoldEnd() 
 	end) 
-	return ok 
 end
 
-local function collectItem(item) 
-	if not item then return end 
-	local prompt = item:FindFirstChildWhichIsA("ProximityPrompt", true) 
-	local pos = getItemPosition(item) 
-	
-	if pos then 
-		teleportTo(pos) 
-		task.wait(0.15) 
-		if prompt then 
-			local ok = firePrompt(prompt) 
-			dbg("Fired prompt on:", item.Name, "Success status:", ok) 
-		else 
-			dbg("No ProximityPrompt found inside object tree:", item.Name) 
-		end 
-	else 
-		dbg("Could not translate vectors for object instance:", item.Name) 
-	end 
-end
-
--- ====== CONTINUOUS AUTO-FARM ENGINE LOOP ======
 local function startFarmingLoop() 
-	dbg("Automation runtime initiated.") 
+	print("[AutoFarm] Activated loop.") 
 	while isFarming do 
-		local foundAnyItem = false 
+		local foundItems = false 
 		local char = player.Character 
 		
 		if char and char:FindFirstChild("HumanoidRootPart") then 
-			local allObjects = ITEMS_PARENT:GetDescendants() 
+			local list = ITEMS_PARENT:GetDescendants() 
 			
-			for _, object in ipairs(allObjects) do 
+			for _, object in ipairs(list) do 
 				if not isFarming then break end 
 				
-				-- Match names directly
 				if targetItems[object.Name] then 
-					foundAnyItem = true 
+					local pos = getItemPosition(object) 
+					local prompt = object:FindFirstChildWhichIsA("ProximityPrompt", true) 
 					
-					-- 1. Teleport to item and take it
-					collectItem(object) 
-					task.wait(0.15) 
-					
-					-- 2. Immediately teleport to drop positions to secure it
-					if isFarming then
-						teleportTo(TELEPORT_DROP_ZONE)
-						task.wait(0.2) -- Brief pause at drop coordinates
-					end
+					if pos and prompt then 
+						foundItems = true 
+						-- Step 1: Teleport and claim item
+						teleportTo(pos) 
+						task.wait(0.15) 
+						firePrompt(prompt) 
+						task.wait(0.15) 
+						
+						-- Step 2: Teleport straight to drop zone location
+						if isFarming then 
+							teleportTo(TELEPORT_DROP_ZONE) 
+							task.wait(0.2) 
+						end 
+					end 
 				end 
 			end 
-		else 
-			dbg("Waiting for humanoid physics root parameters...") 
-			task.wait(1) 
 		end 
-		
-		-- Loop reset constraint: fast refresh if objects are ready, slight back-off if map is empty
-		task.wait(foundAnyItem and 0.5 or 2.0) 
+		task.wait(foundItems and 0.5 or 2.0) 
 	end 
-	dbg("Automation runtime terminated.") 
+	print("[AutoFarm] Deactivated loop.") 
 end
 
--- ====== CORE UI BUTTON HOOK CONNECTIONS ====== 
-
--- Connect Close Button Viewport Collapse
-closeButton.MouseButton1Click:Connect(function()
-	mainGui.Visible = false
+-- ====== STABLE SIGNALS HOOK UP ====== 
+closeButton.MouseButton1Click:Connect(function() 
+	mainGui.Visible = false 
 end)
 
--- Hotkey Keybind 'K' To Unhide Main Windows
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-	if gameProcessed then return end 
-	if input.KeyCode == Enum.KeyCode.K then
-		mainGui.Visible = not mainGui.Visible
-	end
+UserInputService.InputBegan:Connect(function(input, processed) 
+	if processed then return end 
+	if input.KeyCode == Enum.KeyCode.K then 
+		mainGui.Visible = not mainGui.Visible 
+	end 
 end)
 
--- Connect Inner Panel Slide Toggle Window
 drillToggleBtn.MouseButton1Click:Connect(function() 
 	drillSubPanel.Visible = not drillSubPanel.Visible 
 end)
 
--- Connect Runtime Loop Automation Toggle
 autoFarmBtn.MouseButton1Click:Connect(function() 
 	isFarming = not isFarming 
 	if isFarming then 
@@ -272,5 +236,3 @@ autoFarmBtn.MouseButton1Click:Connect(function()
 		autoFarmBtn.Text = "Auto Farm" 
 	end 
 end)
-
-dbg("AWESOME HUB loaded successfully. Press 'K' to open/close.")
