@@ -6,20 +6,52 @@ local CoreGui = game:GetService("CoreGui")
 local player = Players.LocalPlayer 
 if not player then return end
 
--- Executor-safe parent canvas container initialization
 local parentGui = (gethui and gethui()) or CoreGui or player:WaitForChild("PlayerGui")
 
--- ====== AUTO FARM SETTINGS ====== 
-local TELEPORT_DROP_ZONE = Vector3.new(271, 2559, -28) 
-local INTERACT_DELAY = 0.6 -- Holds the prompt longer to guarantee collection under server lag
+-- ====== MULTI-GAME AUTO-DETECTOR SETTINGS ====== 
+local CURRENT_SETTINGS = nil
 
-local targetItems = { 
-    ["Lionel Cactuseli"] = true, 
-    ["Chillin Chili"] = true, 
-    ["Tirilikalika Tirilikalako"] = true, 
-    ["Tric Trac Barabum"] = true, 
-}
+-- Check which game environment exists in Workspace
+if Workspace:FindFirstChild("Items") then
+    -- GAME 1 (Your original brainrot game)
+    CURRENT_SETTINGS = {
+        ItemsFolder = Workspace:WaitForChild("Items"),
+        DropZone = Vector3.new(271, 2559, -28),
+        TargetItems = {
+            ["Lionel Cactuseli"] = true,
+            ["Chillin Chili"] = true,
+            ["Tirilikalika Tirilikalako"] = true,
+            ["Tric Trac Barabum"] = true,
+        }
+    }
+    print("[AwesomeHub] Game 1 detected. Loading parameters...")
+elseif Workspace:FindFirstChild("SpawnedBrainrots") then
+    -- GAME 2 (The new game from your image)
+    CURRENT_SETTINGS = {
+        ItemsFolder = Workspace:WaitForChild("SpawnedBrainrots"),
+        DropZone = Vector3.new(-64, 6, -193), -- Your new drop coordinates
+        TargetItems = {
+            ["Trollface"] = true,
+            ["Pepe"] = true,
+            ["Quesadilla Crocodila"] = true,
+        }
+    }
+    print("[AwesomeHub] New Game detected via SpawnedBrainrots. Loading parameters...")
+else
+    -- FALLBACK DEFAULT (Uses Game 2 configuration if folders take time to stream in)
+    CURRENT_SETTINGS = {
+        ItemsFolder = Workspace:WaitForChild("SpawnedBrainrots"),
+        DropZone = Vector3.new(-64, 6, -193),
+        TargetItems = {
+            ["Trollface"] = true,
+            ["Pepe"] = true,
+            ["Quesadilla Crocodila"] = true,
+        }
+    }
+    print("[AwesomeHub] Falling back to default Game 2 configuration.")
+end
 
+local INTERACT_DELAY = 0.6 
 local isFarming = false
 
 -- ====== GUI CONSTRUCTION ====== 
@@ -46,7 +78,6 @@ local drag = Instance.new("UIDragDetector")
 drag.DragUDim2 = UDim2.new(0, -15, 0, -3)
 drag.Parent = mainGui
 
--- Header text label (Text size made BIGGER: 10 -> 16)
 local titleLabel = Instance.new("TextLabel", mainGui) 
 titleLabel.BackgroundTransparency = 1 
 titleLabel.Text = "Awesome Hub" 
@@ -56,7 +87,6 @@ titleLabel.Font = Enum.Font.SourceSansBold
 titleLabel.Size = UDim2.new(0, 200, 0, 50) 
 titleLabel.Position = UDim2.new(0.34375, 0, 0, 0)
 
--- Left Toggle sub-menu button (Text size made SMALLER: 10 -> 8)
 local drillToggleBtn = Instance.new("TextButton", mainGui) 
 drillToggleBtn.Text = "Drill For Brainrots" 
 drillToggleBtn.TextSize = 8 
@@ -82,7 +112,6 @@ local strokeSub = Instance.new("UIStroke", drillSubPanel)
 strokeSub.Thickness = 5 
 strokeSub.Color = Color3.fromRGB(32, 32, 32)
 
--- Auto Farm button (Text size made SMALLER: 10 -> 8)
 local autoFarmBtn = Instance.new("TextButton", drillSubPanel) 
 autoFarmBtn.Text = "Auto Farm" 
 autoFarmBtn.TextSize = 8 
@@ -132,31 +161,18 @@ local function firePrompt(prompt)
     end 
 end
 
-local function getRealItemsFolder()
-    for _, child in ipairs(Workspace:GetChildren()) do
-        if child.Name == "Items" and child:IsA("Folder") then
-            for _, descendant in ipairs(child:GetDescendants()) do
-                if targetItems[descendant.Name] then
-                    return child 
-                end
-            end
-        end
-    end
-    return nil
-end
-
 local function startFarmingLoop() 
     while isFarming do 
         local foundItems = false 
-        local realItemsFolder = getRealItemsFolder()
+        local folder = CURRENT_SETTINGS.ItemsFolder
         
-        if realItemsFolder and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then 
-            local allElements = realItemsFolder:GetDescendants()
+        if folder and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then 
+            local allElements = folder:GetDescendants()
             
             for _, object in ipairs(allElements) do 
                 if not isFarming then break end 
                 
-                if targetItems[object.Name] then 
+                if CURRENT_SETTINGS.TargetItems[object.Name] then 
                     local prompt = object:FindFirstChildWhichIsA("ProximityPrompt", true) 
                     local part = object:IsA("BasePart") and object or object:FindFirstChildWhichIsA("BasePart", true)
                     
@@ -170,7 +186,7 @@ local function startFarmingLoop()
                         task.wait(0.12) 
                         
                         if isFarming then 
-                            teleportTo(TELEPORT_DROP_ZONE) 
+                            teleportTo(CURRENT_SETTINGS.DropZone) 
                             task.wait(0.2) 
                         end 
                     end 
