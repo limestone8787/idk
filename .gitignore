@@ -6,12 +6,12 @@ local CoreGui = game:GetService("CoreGui")
 local player = Players.LocalPlayer 
 if not player then return end
 
+-- Executor-safe canvas attachment
 local parentGui = (gethui and gethui()) or CoreGui or player:WaitForChild("PlayerGui")
 
 -- ====== MULTI-GAME AUTO-DETECTOR SETTINGS ====== 
 local CURRENT_SETTINGS = nil
 
--- Check which game environment exists in Workspace
 if Workspace:FindFirstChild("Items") then
     -- GAME 1 (Your original brainrot game)
     CURRENT_SETTINGS = {
@@ -29,16 +29,16 @@ elseif Workspace:FindFirstChild("SpawnedBrainrots") then
     -- GAME 2 (The new game from your image)
     CURRENT_SETTINGS = {
         ItemsFolder = Workspace:WaitForChild("SpawnedBrainrots"),
-        DropZone = Vector3.new(-64, 6, -193), -- Your new drop coordinates
+        DropZone = Vector3.new(-64, 6, -193),
         TargetItems = {
             ["Trollface"] = true,
             ["Pepe"] = true,
             ["Quesadilla Crocodila"] = true,
         }
     }
-    print("[AwesomeHub] New Game detected via SpawnedBrainrots. Loading parameters...")
+    print("[AwesomeHub] New Game detected. Loading parameters...")
 else
-    -- FALLBACK DEFAULT (Uses Game 2 configuration if folders take time to stream in)
+    -- FALLBACK DEFAULT (Game 2)
     CURRENT_SETTINGS = {
         ItemsFolder = Workspace:WaitForChild("SpawnedBrainrots"),
         DropZone = Vector3.new(-64, 6, -193),
@@ -51,8 +51,9 @@ else
     print("[AwesomeHub] Falling back to default Game 2 configuration.")
 end
 
-local INTERACT_DELAY = 0.6 
+local INTERACT_DELAY = 0.8 
 local isFarming = false
+local isHpFarming = false
 
 -- ====== GUI CONSTRUCTION ====== 
 local screenGui = Instance.new("ScreenGui") 
@@ -73,11 +74,13 @@ Instance.new("UICorner", mainGui)
 local strokeMain = Instance.new("UIStroke", mainGui)
 strokeMain.Thickness = 5 
 strokeMain.Color = Color3.fromRGB(32, 32, 32)
+strokeMain.Parent = mainGui
 
 local drag = Instance.new("UIDragDetector")
 drag.DragUDim2 = UDim2.new(0, -15, 0, -3)
 drag.Parent = mainGui
 
+-- Header text label (Text size: 16)
 local titleLabel = Instance.new("TextLabel", mainGui) 
 titleLabel.BackgroundTransparency = 1 
 titleLabel.Text = "Awesome Hub" 
@@ -95,28 +98,33 @@ drillToggleBtn.Position = UDim2.new(0.02969, 0, 0.04199, 0)
 drillToggleBtn.BackgroundColor3 = Color3.fromRGB(53, 53, 53) 
 drillToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255) 
 drillToggleBtn.BorderSizePixel = 0 
+drillToggleBtn.Parent = mainGui
 
 Instance.new("UICorner", drillToggleBtn).CornerRadius = UDim.new(0, 6)
 local strokeBtn1 = Instance.new("UIStroke", drillToggleBtn)
 strokeBtn1.Thickness = 3 
 strokeBtn1.Color = Color3.fromRGB(31, 31, 31)
+strokeBtn1.Parent = drillToggleBtn
 
 local drillSubPanel = Instance.new("Frame", mainGui) 
 drillSubPanel.BackgroundColor3 = Color3.fromRGB(45, 45, 45) 
 drillSubPanel.Size = UDim2.new(0, 430, 0, 302) 
 drillSubPanel.Position = UDim2.new(0.3, 0, 0.15, 0) 
 drillSubPanel.Visible = false 
+drillSubPanel.Parent = mainGui
 
 Instance.new("UICorner", drillSubPanel)
 local strokeSub = Instance.new("UIStroke", drillSubPanel)
 strokeSub.Thickness = 5 
 strokeSub.Color = Color3.fromRGB(32, 32, 32)
+strokeSub.Parent = drillSubPanel
 
+-- Auto Farm Button (Text size: 8)
 local autoFarmBtn = Instance.new("TextButton", drillSubPanel) 
 autoFarmBtn.Text = "Auto Farm" 
 autoFarmBtn.TextSize = 8 
 autoFarmBtn.Size = UDim2.new(0, 142, 0, 42) 
-autoFarmBtn.Position = UDim2.new(0.334, 0, 0.058, 0) 
+autoFarmBtn.Position = UDim2.new(0.1, 0, 0.058, 0) -- Adjusted position left
 autoFarmBtn.BackgroundColor3 = Color3.fromRGB(53, 53, 53) 
 autoFarmBtn.TextColor3 = Color3.fromRGB(255, 255, 255) 
 autoFarmBtn.BorderSizePixel = 0 
@@ -125,6 +133,23 @@ Instance.new("UICorner", autoFarmBtn).CornerRadius = UDim.new(0, 6)
 local strokeAuto = Instance.new("UIStroke", autoFarmBtn)
 strokeAuto.Thickness = 3 
 strokeAuto.Color = Color3.fromRGB(31, 31, 31)
+strokeAuto.Parent = autoFarmBtn
+
+-- NEW BUTTON: +1 HP For Brainrots (Text size: 8)
+local hpButton = Instance.new("TextButton", drillSubPanel) 
+hpButton.Text = "+1 hp for brainrots" 
+hpButton.TextSize = 8 
+hpButton.Size = UDim2.new(0, 142, 0, 42) 
+hpButton.Position = UDim2.new(0.55, 0, 0.058, 0) -- Positioned next to auto farm button
+hpButton.BackgroundColor3 = Color3.fromRGB(53, 53, 53) 
+hpButton.TextColor3 = Color3.fromRGB(255, 255, 255) 
+hpButton.BorderSizePixel = 0 
+
+Instance.new("UICorner", hpButton).CornerRadius = UDim.new(0, 6)
+local strokeHp = Instance.new("UIStroke", hpButton)
+strokeHp.Thickness = 3 
+strokeHp.Color = Color3.fromRGB(31, 31, 31)
+strokeHp.Parent = hpButton
 
 
 -- ====== ANTI-CHEAT BYPASS SYSTEM LOGIC ====== 
@@ -143,7 +168,7 @@ local function teleportTo(position)
     
     hrp.AssemblyLinearVelocity = Vector3.new(0,0,0)
     hrp.AssemblyAngularVelocity = Vector3.new(0,0,0)
-    task.wait(0.15)
+    task.wait(0.3) 
     
     if hum then hum.Sit = false end 
 end
@@ -180,22 +205,33 @@ local function startFarmingLoop()
                         foundItems = true 
                         
                         teleportTo(part.Position) 
-                        task.wait(0.12) 
+                        task.wait(0.3) 
                         
                         firePrompt(prompt) 
-                        task.wait(0.12) 
+                        task.wait(0.3) 
                         
                         if isFarming then 
                             teleportTo(CURRENT_SETTINGS.DropZone) 
-                            task.wait(0.2) 
+                            task.wait(0.5) 
                         end 
                     end 
                 end 
             end 
         end 
-        task.wait(foundItems and 0.3 or 1.5) 
+        task.wait(foundItems and 2.5 or 4.0) 
     end 
 end
+
+-- ====== HP LOOP ACTION (Placeholder Framework) ======
+local function startHpLoop()
+    print("[AwesomeHub] HP Booster mechanism activated.")
+    while isHpFarming do
+        -- If this button requires specific code or features, add them here
+        task.wait(1.0)
+    end
+    print("[AwesomeHub] HP Booster mechanism deactivated.")
+end
+
 
 -- ====== SIGNALS INTERFACE ATTACHMENTS ====== 
 drillToggleBtn.MouseButton1Click:Connect(function() 
@@ -207,6 +243,14 @@ autoFarmBtn.MouseButton1Click:Connect(function()
     autoFarmBtn.BackgroundColor3 = isFarming and Color3.fromRGB(0, 200, 0) or Color3.fromRGB(53, 53, 53)
     autoFarmBtn.Text = isFarming and "Auto Farm: ON" or "Auto Farm"
     if isFarming then task.spawn(startFarmingLoop) end
+end)
+
+-- Connect the new HP button toggle
+hpButton.MouseButton1Click:Connect(function()
+    isHpFarming = not isHpFarming
+    hpButton.BackgroundColor3 = isHpFarming and Color3.fromRGB(0, 200, 0) or Color3.fromRGB(53, 53, 53)
+    hpButton.Text = isHpFarming and "+1 HP: ON" or "+1 hp for brainrots"
+    if isHpFarming then task.spawn(startHpLoop) end
 end)
 
 -- GLOBAL KEYBIND TOGGLE (Using 'P' Key)
