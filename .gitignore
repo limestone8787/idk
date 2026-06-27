@@ -6,25 +6,23 @@ local CoreGui = game:GetService("CoreGui")
 local player = Players.LocalPlayer 
 if not player then return end
 
--- Use CoreGui for executor stability
+-- Executor-safe parent canvas container initialization
 local parentGui = (gethui and gethui()) or CoreGui or player:WaitForChild("PlayerGui")
 
 -- ====== AUTO FARM SETTINGS ====== 
--- Updated to look inside Workspace -> "items" folder
-local ITEMS_PARENT = Workspace:WaitForChild("items") 
 local TELEPORT_DROP_ZONE = Vector3.new(271, 2559, -28) 
-local INTERACT_DELAY = 0.3
+local INTERACT_DELAY = 0.6 -- Holds the prompt longer to guarantee collection under server lag
 
 local targetItems = { 
-	["Lionel Cactuseli"] = true, 
-	["Chillin Chili"] = true, 
-	["Tirilikalika Tirilikalako"] = true, 
-	["Tric Trac Barabum"] = true, 
+    ["Lionel Cactuseli"] = true, 
+    ["Chillin Chili"] = true, 
+    ["Tirilikalika Tirilikalako"] = true, 
+    ["Tric Trac Barabum"] = true, 
 }
 
 local isFarming = false
 
--- ====== GUI CONSTRUCTION (TEXT SIZE 10) ====== 
+-- ====== GUI CONSTRUCTION ====== 
 local screenGui = Instance.new("ScreenGui") 
 screenGui.Name = "AWESOME_HUB" 
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
@@ -44,21 +42,24 @@ local strokeMain = Instance.new("UIStroke", mainGui)
 strokeMain.Thickness = 5 
 strokeMain.Color = Color3.fromRGB(32, 32, 32)
 
-local drag = Instance.new("UIDragDetector", mainGui)
+local drag = Instance.new("UIDragDetector")
 drag.DragUDim2 = UDim2.new(0, -15, 0, -3)
+drag.Parent = mainGui
 
+-- Header text label (Text size made BIGGER: 10 -> 16)
 local titleLabel = Instance.new("TextLabel", mainGui) 
 titleLabel.BackgroundTransparency = 1 
 titleLabel.Text = "Awesome Hub" 
-titleLabel.TextSize = 10 
+titleLabel.TextSize = 16 
 titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255) 
 titleLabel.Font = Enum.Font.SourceSansBold 
 titleLabel.Size = UDim2.new(0, 200, 0, 50) 
 titleLabel.Position = UDim2.new(0.34375, 0, 0, 0)
 
+-- Left Toggle sub-menu button (Text size made SMALLER: 10 -> 8)
 local drillToggleBtn = Instance.new("TextButton", mainGui) 
 drillToggleBtn.Text = "Drill For Brainrots" 
-drillToggleBtn.TextSize = 10 
+drillToggleBtn.TextSize = 8 
 drillToggleBtn.Size = UDim2.new(0, 142, 0, 42) 
 drillToggleBtn.Position = UDim2.new(0.02969, 0, 0.04199, 0) 
 drillToggleBtn.BackgroundColor3 = Color3.fromRGB(53, 53, 53) 
@@ -81,9 +82,10 @@ local strokeSub = Instance.new("UIStroke", drillSubPanel)
 strokeSub.Thickness = 5 
 strokeSub.Color = Color3.fromRGB(32, 32, 32)
 
+-- Auto Farm button (Text size made SMALLER: 10 -> 8)
 local autoFarmBtn = Instance.new("TextButton", drillSubPanel) 
 autoFarmBtn.Text = "Auto Farm" 
-autoFarmBtn.TextSize = 10 
+autoFarmBtn.TextSize = 8 
 autoFarmBtn.Size = UDim2.new(0, 142, 0, 42) 
 autoFarmBtn.Position = UDim2.new(0.334, 0, 0.058, 0) 
 autoFarmBtn.BackgroundColor3 = Color3.fromRGB(53, 53, 53) 
@@ -95,64 +97,105 @@ local strokeAuto = Instance.new("UIStroke", autoFarmBtn)
 strokeAuto.Thickness = 3 
 strokeAuto.Color = Color3.fromRGB(31, 31, 31)
 
--- ====== LOGIC ====== 
+
+-- ====== ANTI-CHEAT BYPASS SYSTEM LOGIC ====== 
+
 local function teleportTo(position) 
-	local char = player.Character if not char then return end 
-	local hrp = char:FindFirstChild("HumanoidRootPart") if not hrp then return end 
-	hrp.CFrame = CFrame.new(position + Vector3.new(0, 3, 0)) 
+    local char = player.Character if not char then return end 
+    local hrp = char:FindFirstChild("HumanoidRootPart") if not hrp then return end 
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    
+    if hum then 
+        hum.Sit = true 
+    end
+    task.wait(0.01)
+    
+    hrp.CFrame = CFrame.new(position + Vector3.new(0, 3, 0)) 
+    
+    hrp.AssemblyLinearVelocity = Vector3.new(0,0,0)
+    hrp.AssemblyAngularVelocity = Vector3.new(0,0,0)
+    task.wait(0.15)
+    
+    if hum then hum.Sit = false end 
 end
 
 local function firePrompt(prompt) 
-	if not prompt then return end 
-	if fireproximityprompt then 
-		fireproximityprompt(prompt) 
-	else 
-		pcall(function() 
-			prompt:InputHoldBegin() 
-			task.wait((prompt.HoldDuration or 0) + INTERACT_DELAY) 
-			prompt:InputHoldEnd() 
-		end) 
-	end 
+    if not prompt then return end 
+    if fireproximityprompt then 
+        pcall(function() fireproximityprompt(prompt) end)
+    else 
+        pcall(function() 
+            prompt:InputHoldBegin() 
+            task.wait((prompt.HoldDuration or 0) + INTERACT_DELAY) 
+            prompt:InputHoldEnd() 
+        end) 
+    end 
+end
+
+local function getRealItemsFolder()
+    for _, child in ipairs(Workspace:GetChildren()) do
+        if child.Name == "Items" and child:IsA("Folder") then
+            for _, descendant in ipairs(child:GetDescendants()) do
+                if targetItems[descendant.Name] then
+                    return child 
+                end
+            end
+        end
+    end
+    return nil
 end
 
 local function startFarmingLoop() 
-	while isFarming do 
-		local foundItems = false 
-		if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then 
-			for _, object in ipairs(ITEMS_PARENT:GetChildren()) do 
-				if not isFarming then break end 
-				if targetItems[object.Name] then 
-					local prompt = object:FindFirstChildWhichIsA("ProximityPrompt", true) 
-					local part = object:IsA("BasePart") and object or object:FindFirstChildWhichIsA("BasePart", true)
-					
-					if part and prompt then 
-						foundItems = true 
-						teleportTo(part.Position) 
-						task.wait(0.1) 
-						firePrompt(prompt) 
-						task.wait(0.1) 
-						teleportTo(TELEPORT_DROP_ZONE) 
-						task.wait(0.2) 
-					end 
-				end 
-			end 
-		end 
-		task.wait(foundItems and 0.3 or 1.5) 
-	end 
+    while isFarming do 
+        local foundItems = false 
+        local realItemsFolder = getRealItemsFolder()
+        
+        if realItemsFolder and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then 
+            local allElements = realItemsFolder:GetDescendants()
+            
+            for _, object in ipairs(allElements) do 
+                if not isFarming then break end 
+                
+                if targetItems[object.Name] then 
+                    local prompt = object:FindFirstChildWhichIsA("ProximityPrompt", true) 
+                    local part = object:IsA("BasePart") and object or object:FindFirstChildWhichIsA("BasePart", true)
+                    
+                    if part and prompt then 
+                        foundItems = true 
+                        
+                        teleportTo(part.Position) 
+                        task.wait(0.12) 
+                        
+                        firePrompt(prompt) 
+                        task.wait(0.12) 
+                        
+                        if isFarming then 
+                            teleportTo(TELEPORT_DROP_ZONE) 
+                            task.wait(0.2) 
+                        end 
+                    end 
+                end 
+            end 
+        end 
+        task.wait(foundItems and 0.3 or 1.5) 
+    end 
 end
 
--- ====== INTERACTION ====== 
+-- ====== SIGNALS INTERFACE ATTACHMENTS ====== 
 drillToggleBtn.MouseButton1Click:Connect(function() 
-	drillSubPanel.Visible = not drillSubPanel.Visible 
+    drillSubPanel.Visible = not drillSubPanel.Visible 
 end)
 
 autoFarmBtn.MouseButton1Click:Connect(function() 
-	isFarming = not isFarming 
-	autoFarmBtn.BackgroundColor3 = isFarming and Color3.fromRGB(0, 200, 0) or Color3.fromRGB(53, 53, 53)
-	autoFarmBtn.Text = isFarming and "Auto Farm: ON" or "Auto Farm"
-	if isFarming then task.spawn(startFarmingLoop) end
+    isFarming = not isFarming 
+    autoFarmBtn.BackgroundColor3 = isFarming and Color3.fromRGB(0, 200, 0) or Color3.fromRGB(53, 53, 53)
+    autoFarmBtn.Text = isFarming and "Auto Farm: ON" or "Auto Farm"
+    if isFarming then task.spawn(startFarmingLoop) end
 end)
 
+-- GLOBAL KEYBIND TOGGLE (Using 'P' Key)
 UserInputService.InputBegan:Connect(function(input, processed) 
-	if not processed and input.KeyCode == Enum.KeyCode.K then mainGui.Visible = not mainGui.Visible end 
+    if not processed and input.KeyCode == Enum.KeyCode.P then 
+        mainGui.Visible = not mainGui.Visible 
+    end 
 end)
