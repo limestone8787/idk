@@ -2,16 +2,17 @@ local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local player = Players.LocalPlayer 
 if not player then return end
 
--- Executor-safe parent canvas container initialization
+-- Executor-sicherer GUI-Container
 local parentGui = (gethui and gethui()) or CoreGui or player:WaitForChild("PlayerGui")
 
--- ====== AUTO FARM SETTINGS ====== 
+-- ====== EINSTELLUNGEN GEHIRNROT-FARM ====== 
 local TELEPORT_DROP_ZONE = Vector3.new(271, 2559, -28) 
-local INTERACT_DELAY = 0.6 -- Holds the prompt longer to guarantee collection under server lag
+local INTERACT_DELAY = 0.6 
 
 local targetItems = { 
     ["Lionel Cactuseli"] = true, 
@@ -21,9 +22,11 @@ local targetItems = {
     ["Cerberus"] = true
 }
 
-local isFarming = false
+_G.isFarming = false
+_G.isEggFarming = false 
+_G.eggsFolder = Workspace:WaitForChild("Eggs", 5) or workspace:FindFirstChild("Eggs")
 
--- ====== GUI CONSTRUCTION ====== 
+-- ====== GUI ERSTELLUNG ====== 
 local screenGui = Instance.new("ScreenGui") 
 screenGui.Name = "AWESOME_HUB" 
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
@@ -47,7 +50,6 @@ local drag = Instance.new("UIDragDetector")
 drag.DragUDim2 = UDim2.new(0, -15, 0, -3)
 drag.Parent = mainGui
 
--- Header text label (Text size made BIGGER: 10 -> 16)
 local titleLabel = Instance.new("TextLabel", mainGui) 
 titleLabel.BackgroundTransparency = 1 
 titleLabel.Text = "Awesome Hub" 
@@ -57,7 +59,7 @@ titleLabel.Font = Enum.Font.SourceSansBold
 titleLabel.Size = UDim2.new(0, 200, 0, 50) 
 titleLabel.Position = UDim2.new(0.34375, 0, 0, 0)
 
--- Left Toggle sub-menu button (Text size made SMALLER: 10 -> 8)
+-- ====== LINKER MENÜ-BUTTON 1 (Brainrots) ====== 
 local drillToggleBtn = Instance.new("TextButton", mainGui) 
 drillToggleBtn.Text = "Drill For Brainrots" 
 drillToggleBtn.TextSize = 8 
@@ -72,6 +74,22 @@ local strokeBtn1 = Instance.new("UIStroke", drillToggleBtn)
 strokeBtn1.Thickness = 3 
 strokeBtn1.Color = Color3.fromRGB(31, 31, 31)
 
+-- ====== LINKER MENÜ-BUTTON 2 (Chicken Game) ====== 
+_G.chickenToggleBtn = Instance.new("TextButton", mainGui) 
+_G.chickenToggleBtn.Text = "Chicken Game" 
+_G.chickenToggleBtn.TextSize = 8 
+_G.chickenToggleBtn.Size = UDim2.new(0, 142, 0, 42) 
+_G.chickenToggleBtn.Position = UDim2.new(0.02969, 0, 0.18, 0) 
+_G.chickenToggleBtn.BackgroundColor3 = Color3.fromRGB(53, 53, 53) 
+_G.chickenToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255) 
+_G.chickenToggleBtn.BorderSizePixel = 0 
+
+Instance.new("UICorner", _G.chickenToggleBtn).CornerRadius = UDim.new(0, 6)
+local strokeBtn2 = Instance.new("UIStroke", _G.chickenToggleBtn)
+strokeBtn2.Thickness = 3 
+strokeBtn2.Color = Color3.fromRGB(31, 31, 31)
+
+-- ====== SEITEN-PANELS ARRETIERUNG ====== 
 local drillSubPanel = Instance.new("Frame", mainGui) 
 drillSubPanel.BackgroundColor3 = Color3.fromRGB(45, 45, 45) 
 drillSubPanel.Size = UDim2.new(0, 430, 0, 302) 
@@ -83,7 +101,18 @@ local strokeSub = Instance.new("UIStroke", drillSubPanel)
 strokeSub.Thickness = 5 
 strokeSub.Color = Color3.fromRGB(32, 32, 32)
 
--- Auto Farm button (Text size made SMALLER: 10 -> 8)
+_G.chickenSubPanel = Instance.new("Frame", mainGui) 
+_G.chickenSubPanel.BackgroundColor3 = Color3.fromRGB(45, 45, 45) 
+_G.chickenSubPanel.Size = UDim2.new(0, 430, 0, 302) 
+_G.chickenSubPanel.Position = UDim2.new(0.3, 0, 0.15, 0) 
+_G.chickenSubPanel.Visible = false 
+
+Instance.new("UICorner", _G.chickenSubPanel)
+local strokeSubChicken = Instance.new("UIStroke", _G.chickenSubPanel)
+strokeSubChicken.Thickness = 5 
+strokeSubChicken.Color = Color3.fromRGB(32, 32, 32)
+
+-- ====== AKTION-BUTTONS INNEN ====== 
 local autoFarmBtn = Instance.new("TextButton", drillSubPanel) 
 autoFarmBtn.Text = "Auto Farm" 
 autoFarmBtn.TextSize = 8 
@@ -98,25 +127,17 @@ local strokeAuto = Instance.new("UIStroke", autoFarmBtn)
 strokeAuto.Thickness = 3 
 strokeAuto.Color = Color3.fromRGB(31, 31, 31)
 
-
--- ====== ANTI-CHEAT BYPASS SYSTEM LOGIC ====== 
-
+-- ====== LOGIK FÜR GEHIRNROT ANTI-CHEAT BYPASS ====== 
 local function teleportTo(position) 
     local char = player.Character if not char then return end 
     local hrp = char:FindFirstChild("HumanoidRootPart") if not hrp then return end 
     local hum = char:FindFirstChildOfClass("Humanoid")
-    
-    if hum then 
-        hum.Sit = true 
-    end
+    if hum then hum.Sit = true end
     task.wait(0.01)
-    
     hrp.CFrame = CFrame.new(position + Vector3.new(0, 3, 0)) 
-    
     hrp.AssemblyLinearVelocity = Vector3.new(0,0,0)
     hrp.AssemblyAngularVelocity = Vector3.new(0,0,0)
     task.wait(0.15)
-    
     if hum then hum.Sit = false end 
 end
 
@@ -137,9 +158,7 @@ local function getRealItemsFolder()
     for _, child in ipairs(Workspace:GetChildren()) do
         if child.Name == "Items" and child:IsA("Folder") then
             for _, descendant in ipairs(child:GetDescendants()) do
-                if targetItems[descendant.Name] then
-                    return child 
-                end
+                if targetItems[descendant.Name] then return child end
             end
         end
     end
@@ -147,33 +166,22 @@ local function getRealItemsFolder()
 end
 
 local function startFarmingLoop() 
-    while isFarming do 
+    while _G.isFarming do 
         local foundItems = false 
         local realItemsFolder = getRealItemsFolder()
-        
         if realItemsFolder and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then 
-            local allElements = realItemsFolder:GetDescendants()
-            
-            for _, object in ipairs(allElements) do 
-                if not isFarming then break end 
-                
+            for _, object in ipairs(realItemsFolder:GetDescendants()) do 
+                if not _G.isFarming then break end 
                 if targetItems[object.Name] then 
                     local prompt = object:FindFirstChildWhichIsA("ProximityPrompt", true) 
                     local part = object:IsA("BasePart") and object or object:FindFirstChildWhichIsA("BasePart", true)
-                    
                     if part and prompt then 
                         foundItems = true 
-                        
                         teleportTo(part.Position) 
                         task.wait(0.12) 
-                        
                         firePrompt(prompt) 
                         task.wait(0.12) 
-                        
-                        if isFarming then 
-                            teleportTo(TELEPORT_DROP_ZONE) 
-                            task.wait(0.2) 
-                        end 
+                        if _G.isFarming then teleportTo(TELEPORT_DROP_ZONE) task.wait(0.2) end 
                     end 
                 end 
             end 
@@ -182,21 +190,90 @@ local function startFarmingLoop()
     end 
 end
 
--- ====== SIGNALS INTERFACE ATTACHMENTS ====== 
 drillToggleBtn.MouseButton1Click:Connect(function() 
     drillSubPanel.Visible = not drillSubPanel.Visible 
+    _G.chickenSubPanel.Visible = false
 end)
 
 autoFarmBtn.MouseButton1Click:Connect(function() 
-    isFarming = not isFarming 
-    autoFarmBtn.BackgroundColor3 = isFarming and Color3.fromRGB(0, 200, 0) or Color3.fromRGB(53, 53, 53)
-    autoFarmBtn.Text = isFarming and "Auto Farm: ON" or "Auto Farm"
-    if isFarming then task.spawn(startFarmingLoop) end
+    _G.isFarming = not _G.isFarming 
+    autoFarmBtn.BackgroundColor3 = _G.isFarming and Color3.fromRGB(0, 200, 0) or Color3.fromRGB(53, 53, 53)
+    autoFarmBtn.Text = _G.isFarming and "Auto Farm: ON" or "Auto Farm"
+    if _G.isFarming then task.spawn(startFarmingLoop) end
 end)
 
--- GLOBAL KEYBIND TOGGLE (Using 'P' Key)
 UserInputService.InputBegan:Connect(function(input, processed) 
-    if not processed and input.KeyCode == Enum.KeyCode.P then 
-        mainGui.Visible = not mainGui.Visible 
-    end 
+    if not processed and input.KeyCode == Enum.KeyCode.P then mainGui.Visible = not mainGui.Visible end 
+end)
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+-- Button für das Chicken Game im Untermenü generieren
+local eggFarmBtn = Instance.new("TextButton", _G.chickenSubPanel) 
+eggFarmBtn.Text = "Egg Farm" 
+eggFarmBtn.TextSize = 8 
+eggFarmBtn.Size = UDim2.new(0, 142, 0, 42) 
+eggFarmBtn.Position = UDim2.new(0.334, 0, 0.058, 0) 
+eggFarmBtn.BackgroundColor3 = Color3.fromRGB(53, 53, 53) 
+eggFarmBtn.TextColor3 = Color3.fromRGB(255, 255, 255) 
+eggFarmBtn.BorderSizePixel = 0 
+
+Instance.new("UICorner", eggFarmBtn).CornerRadius = UDim.new(0, 6)
+local strokeEgg = Instance.new("UIStroke", eggFarmBtn)
+strokeEgg.Thickness = 3 
+strokeEgg.Color = Color3.fromRGB(31, 31, 31)
+
+-- ====== VOLLSTÄNDIGE CHICKEN-GAME AUTOMATION ====== 
+local function startEggFarmingLoop()
+    local remoteFunction = ReplicatedStorage:WaitForChild("Paper"):WaitForChild("Remotes"):WaitForChild("__remotefunction")
+    
+    while _G.isEggFarming do
+        local character = player.Character
+        local hrp = character and character:FindFirstChild("HumanoidRootPart")
+        
+        -- Eier einsammeln via Touch-Interests
+        if hrp and _G.eggsFolder then
+            for _, egg in ipairs(_G.eggsFolder:GetChildren()) do
+                if not _G.isEggFarming then break end
+                local targetPart = egg:FindFirstChild("Part")
+            
+                if targetPart then
+                    if firetouchinterest then
+                        firetouchinterest(hrp, targetPart, 0)
+                        task.wait(0.05)
+                        firetouchinterest(hrp, targetPart, 1)
+                        task.wait(0.05)
+                    end
+                end
+            end
+        end
+        
+        -- Alle ungeschnittenen Remote-Funktionen nacheinander triggern
+        if _G.isEggFarming then
+            pcall(function()
+                remoteFunction:InvokeServer("Deposit Eggs")
+                remoteFunction:InvokeServer("Collect Cash")
+                remoteFunction:InvokeServer("Buy Chickens", 5)
+                remoteFunction:InvokeServer("Merge Chickens")
+                remoteFunction:InvokeServer("Upgrade Process Level")
+            end)
+        end
+        
+        -- Verhindert Client-Abstürze bei Server-Lag
+        task.wait(1)
+    end
+end
+
+-- Menüführung aktivieren
+_G.chickenToggleBtn.MouseButton1Click:Connect(function() 
+    _G.chickenSubPanel.Visible = not _G.chickenSubPanel.Visible 
+end)
+
+-- Schleife mit dem UI-Button verbinden
+eggFarmBtn.MouseButton1Click:Connect(function()
+    _G.isEggFarming = not _G.isEggFarming
+    eggFarmBtn.BackgroundColor3 = _G.isEggFarming and Color3.fromRGB(0, 200, 0) or Color3.fromRGB(53, 53, 53)
+    eggFarmBtn.Text = _G.isEggFarming and "Egg Farm: ON" or "Egg Farm"
+    if _G.isEggFarming then task.spawn(startEggFarmingLoop) end
 end)
