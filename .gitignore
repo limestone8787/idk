@@ -1,8 +1,7 @@
--- ====================================================================
--- AWESOME HUB: PART 1 (USER INTERFACE SYSTEM)
--- ====================================================================
-local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+local UserInputService = game:GetService("UserInputService")
+local CoreGui = game:GetService("CoreGui")
 
 local player = Players.LocalPlayer 
 if not player then return end
@@ -10,17 +9,26 @@ if not player then return end
 -- Executor-safe parent canvas container initialization
 local parentGui = (gethui and gethui()) or CoreGui or player:WaitForChild("PlayerGui")
 
--- Shared Global Table to communicate variables across different tabs/scripts
-_G.AwesomeHubShared = _G.AwesomeHubShared or {}
+-- ====== AUTO FARM SETTINGS ====== 
+local TELEPORT_DROP_ZONE = Vector3.new(271, 2559, -28) 
+local INTERACT_DELAY = 0.6 -- Holds the prompt longer to guarantee collection under server lag
 
--- Construct the visual Screen Canvas
+local targetItems = { 
+    ["Lionel Cactuseli"] = true, 
+    ["Chillin Chili"] = true, 
+    ["Tirilikalika Tirilikalako"] = true, 
+    ["Tric Trac Barabum"] = true, 
+}
+
+local isFarming = false
+
+-- ====== GUI CONSTRUCTION ====== 
 local screenGui = Instance.new("ScreenGui") 
 screenGui.Name = "AWESOME_HUB" 
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screenGui.ResetOnSpawn = false
 screenGui.Parent = parentGui
 
--- Main Base Window Framework
 local mainGui = Instance.new("Frame") 
 mainGui.Name = "MainGui" 
 mainGui.BackgroundColor3 = Color3.fromRGB(50, 50, 50) 
@@ -33,14 +41,12 @@ Instance.new("UICorner", mainGui)
 local strokeMain = Instance.new("UIStroke", mainGui)
 strokeMain.Thickness = 5 
 strokeMain.Color = Color3.fromRGB(32, 32, 32)
-strokeMain.Parent = mainGui
 
--- Enable dragging capability for the frame plate
 local drag = Instance.new("UIDragDetector")
 drag.DragUDim2 = UDim2.new(0, -15, 0, -3)
 drag.Parent = mainGui
 
--- Large Header Text Label (Text size: 16)
+-- Header text label (Text size made BIGGER: 10 -> 16)
 local titleLabel = Instance.new("TextLabel", mainGui) 
 titleLabel.BackgroundTransparency = 1 
 titleLabel.Text = "Awesome Hub" 
@@ -50,7 +56,7 @@ titleLabel.Font = Enum.Font.SourceSansBold
 titleLabel.Size = UDim2.new(0, 200, 0, 50) 
 titleLabel.Position = UDim2.new(0.34375, 0, 0, 0)
 
--- Left Toggle sub-menu button (Text size: 8)
+-- Left Toggle sub-menu button (Text size made SMALLER: 10 -> 8)
 local drillToggleBtn = Instance.new("TextButton", mainGui) 
 drillToggleBtn.Text = "Drill For Brainrots" 
 drillToggleBtn.TextSize = 8 
@@ -59,29 +65,24 @@ drillToggleBtn.Position = UDim2.new(0.02969, 0, 0.04199, 0)
 drillToggleBtn.BackgroundColor3 = Color3.fromRGB(53, 53, 53) 
 drillToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255) 
 drillToggleBtn.BorderSizePixel = 0 
-drillToggleBtn.Parent = mainGui
 
 Instance.new("UICorner", drillToggleBtn).CornerRadius = UDim.new(0, 6)
 local strokeBtn1 = Instance.new("UIStroke", drillToggleBtn)
 strokeBtn1.Thickness = 3 
 strokeBtn1.Color = Color3.fromRGB(31, 31, 31)
-strokeBtn1.Parent = drillToggleBtn
 
--- Sub-Menu Frame Panel
 local drillSubPanel = Instance.new("Frame", mainGui) 
 drillSubPanel.BackgroundColor3 = Color3.fromRGB(45, 45, 45) 
 drillSubPanel.Size = UDim2.new(0, 430, 0, 302) 
 drillSubPanel.Position = UDim2.new(0.3, 0, 0.15, 0) 
 drillSubPanel.Visible = false 
-drillSubPanel.Parent = mainGui
 
 Instance.new("UICorner", drillSubPanel)
 local strokeSub = Instance.new("UIStroke", drillSubPanel)
 strokeSub.Thickness = 5 
 strokeSub.Color = Color3.fromRGB(32, 32, 32)
-strokeSub.Parent = drillSubPanel
 
--- Auto Farm Primary Control Button (Text size: 8)
+-- Auto Farm button (Text size made SMALLER: 10 -> 8)
 local autoFarmBtn = Instance.new("TextButton", drillSubPanel) 
 autoFarmBtn.Text = "Auto Farm" 
 autoFarmBtn.TextSize = 8 
@@ -95,137 +96,26 @@ Instance.new("UICorner", autoFarmBtn).CornerRadius = UDim.new(0, 6)
 local strokeAuto = Instance.new("UIStroke", autoFarmBtn)
 strokeAuto.Thickness = 3 
 strokeAuto.Color = Color3.fromRGB(31, 31, 31)
-strokeAuto.Parent = autoFarmBtn
 
--- Underground Fly Noclip Farm Button (Text size: 8, Positioned under Button 1)
-local hpButton = Instance.new("TextButton", drillSubPanel) 
-hpButton.Text = "+1 hp for brainrots" 
-hpButton.TextSize = 8 
-hpButton.Size = UDim2.new(0, 142, 0, 42) 
-hpButton.Position = UDim2.new(0.334, 0, 0.23, 0) 
-hpButton.BackgroundColor3 = Color3.fromRGB(53, 53, 53) 
-hpButton.TextColor3 = Color3.fromRGB(255, 255, 255) 
-hpButton.BorderSizePixel = 0 
 
-Instance.new("UICorner", hpButton).CornerRadius = UDim.new(0, 6)
-local strokeHp = Instance.new("UIStroke", hpButton)
-strokeHp.Thickness = 3 
-strokeHp.Color = Color3.fromRGB(31, 31, 31)
-strokeHp.Parent = hpButton
-
--- Map Interface Instances into Shared Globals for Part 2 Access
-_G.AwesomeHubShared.MainGui = mainGui
-_G.AwesomeHubShared.DrillSubPanel = drillSubPanel
-_G.AwesomeHubShared.AutoFarmBtn = autoFarmBtn
-_G.AwesomeHubShared.HpButton = hpButton
-
--- Simple Sub-Menu Slide Toggle Link
-drillToggleBtn.MouseButton1Click:Connect(function() 
-    drillSubPanel.Visible = not drillSubPanel.Visible 
-end)
-
-print("[AwesomeHub] Part 1: Visual layout objects initiated successfully.")
--- ====================================================================
--- AWESOME HUB: PART 2 (AUTOMATION ENGINE LOGIC)
--- ====================================================================
-local Workspace = game:GetService("Workspace")
-local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
-
-local player = Players.LocalPlayer
-if not player then return end
-
--- References the shared UI instance pointers from Part 1 execution
-local sharedData = _G.AwesomeHubShared or {}
-local mainGui = sharedData.MainGui
-local autoFarmBtn = sharedData.AutoFarmBtn
-local hpButton = sharedData.HpButton
-
-if not mainGui or not autoFarmBtn or not hpButton then
-    warn("[AwesomeHub] Part 2 Failure: Ensure Part 1 UI Script is running first!")
-    return
-end
-
--- ====== ENVIRONMENT PATH SELECTION METRICS ====== 
-local CURRENT_SETTINGS = nil
-
-if Workspace:FindFirstChild("Items") then
-    CURRENT_SETTINGS = {
-        ItemsFolder = Workspace:WaitForChild("Items"),
-        DropZone = Vector3.new(271, 2559, -28),
-        TargetItems = {
-            ["Lionel Cactuseli"] = true, ["Chillin Chili"] = true,
-            ["Tirilikalika Tirilikalako"] = true, ["Tric Trac Barabum"] = true,
-        }
-    }
-    print("[AwesomeHub] Game 1 detected. Syncing item trees...")
-elseif Workspace:FindFirstChild("SpawnedBrainrots") then
-    CURRENT_SETTINGS = {
-        ItemsFolder = Workspace:WaitForChild("SpawnedBrainrots"),
-        DropZone = Vector3.new(-64, 6, -193),
-        TargetItems = {
-            ["Trollface"] = true, ["Pepe"] = true, ["Quesadilla Crocodila"] = true,
-        }
-    }
-    print("[AwesomeHub] Game 2 detected. Syncing item trees...")
-else
-    CURRENT_SETTINGS = {
-        ItemsFolder = Workspace:WaitForChild("SpawnedBrainrots"),
-        DropZone = Vector3.new(-64, 6, -193),
-        TargetItems = {
-            ["Trollface"] = true, ["Pepe"] = true, ["Quesadilla Crocodila"] = true,
-        }
-    }
-    print("[AwesomeHub] Fallback state active. Targeting Game 2 assets...")
-end
-
-local INTERACT_DELAY = 0.8 
-local isFarming = false
-local isHpFarming = false
-local flySpeed = 120 -- Underground flight movement tracking speed context
-
--- ====== NOCLIP LINEAR SLIDE BYPASS ROUTINE ====== 
-local function smoothUndergroundFly(targetPosition)
-    local char = player.Character if not char then return end
-    local hrp = char:FindFirstChild("HumanoidRootPart") if not hrp then return end
-    
-    -- Drop 35 studs below the map terrain layer mesh
-    local deepStart = hrp.Position - Vector3.new(0, 35, 0)
-    local deepTarget = targetPosition - Vector3.new(0, 35, 0)
-    
-    hrp.CFrame = CFrame.new(deepStart)
-    task.wait(0.05)
-    
-    local distance = (deepStart - deepTarget).Magnitude
-    local duration = distance / flySpeed
-    
-    -- Kill collision metrics temporarily to ensure smooth slide tracking
-    for _, part in ipairs(char:GetDescendants()) do
-        if part:IsA("BasePart") then part.CanCollide = false end
-    end
-    
-    local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Linear)
-    local tween = TweenService:Create(hrp, tweenInfo, {CFrame = CFrame.new(deepTarget)})
-    tween:Play()
-    tween.Completed:Wait()
-    
-    -- Ascend directly into prompt interaction coordinates
-    hrp.CFrame = CFrame.new(targetPosition + Vector3.new(0, 3, 0))
-    task.wait(0.1)
-end
+-- ====== ANTI-CHEAT BYPASS SYSTEM LOGIC ====== 
 
 local function teleportTo(position) 
     local char = player.Character if not char then return end 
     local hrp = char:FindFirstChild("HumanoidRootPart") if not hrp then return end 
     local hum = char:FindFirstChildOfClass("Humanoid")
     
-    if hum then hum.Sit = true end
+    if hum then 
+        hum.Sit = true 
+    end
     task.wait(0.01)
+    
     hrp.CFrame = CFrame.new(position + Vector3.new(0, 3, 0)) 
+    
     hrp.AssemblyLinearVelocity = Vector3.new(0,0,0)
     hrp.AssemblyAngularVelocity = Vector3.new(0,0,0)
-    task.wait(0.3) 
+    task.wait(0.15)
+    
     if hum then hum.Sit = false end 
 end
 
@@ -242,91 +132,70 @@ local function firePrompt(prompt)
     end 
 end
 
--- BUTTON 1 ENGINE: Standard Safe Jump Loops
+local function getRealItemsFolder()
+    for _, child in ipairs(Workspace:GetChildren()) do
+        if child.Name == "Items" and child:IsA("Folder") then
+            for _, descendant in ipairs(child:GetDescendants()) do
+                if targetItems[descendant.Name] then
+                    return child 
+                end
+            end
+        end
+    end
+    return nil
+end
+
 local function startFarmingLoop() 
     while isFarming do 
         local foundItems = false 
-        local folder = CURRENT_SETTINGS.ItemsFolder
+        local realItemsFolder = getRealItemsFolder()
         
-        if folder and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then 
-            for _, object in ipairs(folder:GetDescendants()) do 
+        if realItemsFolder and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then 
+            local allElements = realItemsFolder:GetDescendants()
+            
+            for _, object in ipairs(allElements) do 
                 if not isFarming then break end 
-                if CURRENT_SETTINGS.TargetItems[object.Name] then 
+                
+                if targetItems[object.Name] then 
                     local prompt = object:FindFirstChildWhichIsA("ProximityPrompt", true) 
                     local part = object:IsA("BasePart") and object or object:FindFirstChildWhichIsA("BasePart", true)
                     
                     if part and prompt then 
                         foundItems = true 
+                        
                         teleportTo(part.Position) 
-                        task.wait(0.3) 
+                        task.wait(0.12) 
+                        
                         firePrompt(prompt) 
-                        task.wait(0.3) 
+                        task.wait(0.12) 
+                        
                         if isFarming then 
-                            teleportTo(CURRENT_SETTINGS.DropZone) 
-                            task.wait(0.5) 
+                            teleportTo(TELEPORT_DROP_ZONE) 
+                            task.wait(0.2) 
                         end 
                     end 
                 end 
             end 
         end 
-        task.wait(foundItems and 2.5 or 4.0) 
+        task.wait(foundItems and 0.3 or 1.5) 
     end 
 end
 
--- BUTTON 2 ENGINE: Underground Flight Sweep Loops
-local function startHpLoop()
-    while isHpFarming do
-        local foundItems = false
-        local folder = CURRENT_SETTINGS.ItemsFolder
-        
-        if folder and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            for _, object in ipairs(folder:GetDescendants()) do
-                if not isHpFarming then break end
-                if CURRENT_SETTINGS.TargetItems[object.Name] then
-                    local prompt = object:FindFirstChildWhichIsA("ProximityPrompt", true)
-                    local part = object:IsA("BasePart") and object or object:FindFirstChildWhichIsA("BasePart", true)
-                    
-                    if part and prompt then
-                        foundItems = true
-                        smoothUndergroundFly(part.Position)
-                        task.wait(0.3)
-                        firePrompt(prompt)
-                        task.wait(0.3)
-                        if isHpFarming then
-                            smoothUndergroundFly(CURRENT_SETTINGS.DropZone)
-                            task.wait(0.5)
-                        end
-                    end
-                end
-            end
-        end
-        task.wait(foundItems and 2.0 or 4.0)
-    end
-end
-
--- ====== INTERFACE CLICK CONNECTION TRIGGERS ====== 
+-- ====== SIGNALS INTERFACE ATTACHMENTS ====== 
+drillToggleBtn.MouseButton1Click:Connect(function() 
+    drillSubPanel.Visible = not drillSubPanel.Visible 
+end)
 
 autoFarmBtn.MouseButton1Click:Connect(function() 
     isFarming = not isFarming 
-    if isFarming and isHpFarming then isHpFarming = false hpButton.Text = "+1 hp for brainrots" hpButton.BackgroundColor3 = Color3.fromRGB(53,53,53) end 
     autoFarmBtn.BackgroundColor3 = isFarming and Color3.fromRGB(0, 200, 0) or Color3.fromRGB(53, 53, 53)
     autoFarmBtn.Text = isFarming and "Auto Farm: ON" or "Auto Farm"
     if isFarming then task.spawn(startFarmingLoop) end
 end)
 
-hpButton.MouseButton1Click:Connect(function()
-    isHpFarming = not isHpFarming
-    if isHpFarming and isFarming then isFarming = false autoFarmBtn.Text = "Auto Farm" autoFarmBtn.BackgroundColor3 = Color3.fromRGB(53,53,53) end 
-    hpButton.BackgroundColor3 = isHpFarming and Color3.fromRGB(0, 200, 0) or Color3.fromRGB(53, 53, 53)
-    hpButton.Text = isHpFarming and "+1 HP: ON" or "+1 hp for brainrots"
-    if isHpFarming then task.spawn(startHpLoop) end
-end)
-
--- Keyboard Framework Hook bind: Global Keybind Toggle (Using 'P' Key)
+-- GLOBAL KEYBIND TOGGLE (Using 'P' Key)
 UserInputService.InputBegan:Connect(function(input, processed) 
     if not processed and input.KeyCode == Enum.KeyCode.P then 
         mainGui.Visible = not mainGui.Visible 
     end 
 end)
-
-print("[AwesomeHub] Part 2: Automation engine systems ready. Press 'P' to minimize.")
