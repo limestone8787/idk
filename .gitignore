@@ -17,7 +17,8 @@ local targetItems = {
     ["Lionel Cactuseli"] = true, 
     ["Chillin Chili"] = true, 
     ["Tirilikalika Tirilikalako"] = true, 
-    ["Tric Trac Barabum"] = true, 
+    ["Tric Trac Barabum"] = true,
+    ["Cerberus"] = true
 }
 
 local isFarming = false
